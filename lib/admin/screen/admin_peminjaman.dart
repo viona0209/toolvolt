@@ -1,272 +1,118 @@
 import 'package:flutter/material.dart';
-import 'package:toolvolt/admin/screen/admin_alat_page.dart';
-import 'package:toolvolt/admin/screen/admin_pengaturan.dart';
-import 'package:toolvolt/admin/screen/admin_pengembalian.dart';
-import 'package:toolvolt/admin/widgets/peminjaman_card.dart';
-import 'package:toolvolt/admin/widgets/admin_bottom_nav.dart';
-import 'admin_dashboard.dart';
+import 'package:intl/intl.dart';
 
-class PeminjamanPage extends StatefulWidget {
-  const PeminjamanPage({super.key});
+import '../services/peminjam_service.dart';
+import '../widgets/admin_bottom_nav.dart';
+import '../widgets/peminjaman/peminjaman_card.dart';
+import '../widgets/peminjaman/tambah_peminjaman_dialog.dart';
+import 'admin_alat_page.dart';
+import 'admin_dashboard.dart';
+import 'admin_pengaturan.dart';
+import 'admin_pengembalian.dart';
+
+class PeminjamanScreen extends StatefulWidget {
+  const PeminjamanScreen({super.key});
 
   @override
-  State<PeminjamanPage> createState() => _PeminjamanPageState();
+  State<PeminjamanScreen> createState() => _PeminjamanScreenState();
 }
 
-class _PeminjamanPageState extends State<PeminjamanPage> {
+class _PeminjamanScreenState extends State<PeminjamanScreen> {
   int _currentIndex = 1;
+  bool _isLoading = true;
+  List<Map<String, dynamic>> _peminjamanList = [];
 
-  void _onNavTap(int index) {
-    if (index == _currentIndex) return;
-    setState(() => _currentIndex = index);
+  final PeminjamanService _service = PeminjamanService();
 
-    switch (index) {
-      case 0:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const AdminAlatPage()),
+  @override
+  void initState() {
+    super.initState();
+    _loadPeminjaman();
+  }
+
+  Future<void> _loadPeminjaman() async {
+    if (!mounted) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      final data = await _service.getAllPeminjaman();
+      if (mounted) {
+        setState(() {
+          _peminjamanList = data;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal memuat data peminjaman: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
-        break;
-      case 1:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const PeminjamanPage()),
-        );
-        break;
-      case 2:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const AdminDashboard()),
-        );
-        break;
-      case 3:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const PengembalianPage()),
-        );
-        break;
-      case 4:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const PengaturanPage()),
-        );
-        break;
+      }
     }
   }
 
-  void _showTambahPeminjamanDialog() {
-    const primaryOrange = Color(0xFFFF8E01);
+  void _onNavTap(int index) {
+    if (index == _currentIndex) return;
 
+    setState(() => _currentIndex = index);
+
+    Widget? nextPage;
+    switch (index) {
+      case 0:
+        nextPage = const AdminAlatScreen();
+        break;
+      case 1:
+        nextPage = const PeminjamanScreen();
+        break;
+      case 2:
+        nextPage = const AdminDashboard();
+        break;
+      case 3:
+        nextPage = const PengembalianScreen();
+        break;
+      case 4:
+        nextPage = const PengaturanPage();
+        break;
+    }
+
+    if (nextPage != null) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => nextPage!),
+      );
+    }
+  }
+
+  void _showAddPeminjamanDialog() {
     showDialog(
       context: context,
-      builder: (dialogContext) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-            side: const BorderSide(color: primaryOrange, width: 2),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: StatefulBuilder(
-              builder: (context, setState) {
-                final namaController = TextEditingController();
-                String? selectedAlat;
-                final jumlahController = TextEditingController();
-                final tglPinjamController = TextEditingController();
-                final tglKembaliController = TextEditingController();
-                final List<String> daftarAlat = [
-                  'Tang Potong',
-                  'Obeng Plus',
-                  'Obeng Minus',
-                  'Kunci Inggris',
-                  'Multimeter',
-                  'Oscilloscope',
-                  'Power Supply',
-                  'Solder',
-                  'Mesin Bor Mini',
-                  'Tang Ampere',
-                ];
-
-                return SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Center(
-                        child: Text(
-                          'Tambah Peminjaman',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-
-                      _buildLabel('Nama'),
-                      TextField(
-                        controller: namaController,
-                        decoration: _inputDecoration(),
-                      ),
-                      const SizedBox(height: 16),
-
-                      Row(
-                        children: [
-                          Expanded(
-                            flex: 3,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _buildLabel('Pilih Alat'),
-                                DropdownButtonFormField<String?>(
-                                  value: selectedAlat,
-                                  isExpanded: true,
-                                  hint: const Text('Pilih alat'),
-                                  decoration: _inputDecoration(),
-                                  items: daftarAlat.map((alatNama) {
-                                    return DropdownMenuItem<String?>(
-                                      value: alatNama,
-                                      child: Text(alatNama),
-                                    );
-                                  }).toList(),
-                                  onChanged: (val) {
-                                    setState(() => selectedAlat = val);
-                                  },
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            flex: 2,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _buildLabel('Jumlah'),
-                                TextField(
-                                  controller: jumlahController,
-                                  keyboardType: TextInputType.number,
-                                  decoration: _inputDecoration(),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _buildLabel('Tgl. Pinjam'),
-                                TextField(
-                                  controller: tglPinjamController,
-                                  decoration: _inputDecoration().copyWith(
-                                    suffixIcon: const Icon(
-                                      Icons.calendar_today,
-                                      size: 20,
-                                    ),
-                                  ),
-                                  readOnly: true,
-                                  onTap: () {
-                                    // TODO: Implement date picker
-                                  },
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _buildLabel('Tgl. Kembali'),
-                                TextField(
-                                  controller: tglKembaliController,
-                                  decoration: _inputDecoration().copyWith(
-                                    suffixIcon: const Icon(
-                                      Icons.calendar_today,
-                                      size: 20,
-                                    ),
-                                  ),
-                                  readOnly: true,
-                                  onTap: () {
-                                    // TODO: Implement date picker
-                                  },
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 32),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          OutlinedButton(
-                            onPressed: () => Navigator.pop(dialogContext),
-                            style: OutlinedButton.styleFrom(
-                              side: const BorderSide(
-                                color: primaryOrange,
-                                width: 1.5,
-                              ),
-                              foregroundColor: primaryOrange,
-                              minimumSize: const Size(110, 46),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            child: const Text('Batal'),
-                          ),
-                          const SizedBox(width: 16),
-                          ElevatedButton(
-                            onPressed: () {
-                              if (namaController.text.trim().isEmpty ||
-                                  selectedAlat == null ||
-                                  jumlahController.text.trim().isEmpty ||
-                                  tglPinjamController.text.trim().isEmpty ||
-                                  tglKembaliController.text.trim().isEmpty) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Lengkapi semua field'),
-                                  ),
-                                );
-                                return;
-                              }
-
-                              // TODO: Simpan ke Supabase / list
-                              Navigator.pop(dialogContext);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'Peminjaman berhasil ditambahkan',
-                                  ),
-                                ),
-                              );
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: primaryOrange,
-                              foregroundColor: Colors.white,
-                              minimumSize: const Size(130, 46),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            child: const Text('Tambah'),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                );
-              },
+      builder: (context) => TambahPeminjamanDialog(
+        onSuccess: () {
+          _loadPeminjaman(); // refresh otomatis setelah tambah
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Peminjaman berhasil ditambahkan'),
+              backgroundColor: Colors.green,
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
+  }
+
+  String _formatDate(String? dateStr) {
+    if (dateStr == null || dateStr.isEmpty) return '-';
+    try {
+      final date = DateTime.parse(dateStr);
+      return DateFormat('dd/MM/yyyy').format(date);
+    } catch (_) {
+      return dateStr;
+    }
   }
 
   @override
@@ -274,92 +120,91 @@ class _PeminjamanPageState extends State<PeminjamanPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 50),
-              Center(
-                child: Image.asset(
-                  "assets/image/logo1remove.png",
-                  width: MediaQuery.of(context).size.width * 0.55,
-                ),
-              ),
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : _peminjamanList.isEmpty
+                ? const Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.hourglass_empty, size: 60, color: Colors.grey),
+                        SizedBox(height: 16),
+                        Text(
+                          'Belum ada data peminjaman',
+                          style: TextStyle(fontSize: 18, color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                  )
+                : RefreshIndicator(
+                    onRefresh: _loadPeminjaman, // pull-to-refresh
+                    child: SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 50),
+                          Center(
+                            child: Image.asset(
+                              "assets/image/logo1remove.png",
+                              width: MediaQuery.of(context).size.width * 0.55,
+                            ),
+                          ),
+                          const SizedBox(height: 35),
+                          const Text(
+                            "List Peminjaman",
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
 
-              const SizedBox(height: 35),
+                          // List peminjaman
+                          ..._peminjamanList.map((data) {
+                            final detailList = data['detail_peminjaman'] as List<dynamic>? ?? [];
 
-              const Text(
-                "List Peminjaman",
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-              ),
+                            final List<Map<String, dynamic>> items = detailList.map((d) {
+                              final alatMap = d['alat'] as Map<String, dynamic>? ?? {};
+                              return {
+                                'nama_alat': alatMap['nama_alat'] as String? ?? 'Alat tidak diketahui',
+                                'jumlah': d['jumlah'] as int? ?? 0,
+                              };
+                            }).toList();
 
-              const SizedBox(height: 16),
+                            return PeminjamanCard(
+                              id: data['id_peminjaman'].toString(),
+                              nama: (data['pengguna'] as Map?)?['nama'] as String? ?? 'Unknown',
+                              tglPinjam: _formatDate(data['tanggal_pinjam']),
+                              tglKembali: _formatDate(data['tanggal_kembali']),
+                              status: data['status'] ?? 'dipinjam',
+                              statusColor: (data['status']?.toString().toLowerCase().contains('kembali') ?? false)
+                                  ? Colors.green
+                                  : (data['status']?.toString().toLowerCase() == 'dipinjam' ? Colors.orange : Colors.grey),
+                              // disetujuiOleh & dikembalikanOleh bisa diisi dari log_aktivitas nanti
+                              items: items,
+                              onRefresh: _loadPeminjaman, // ← ini kuncinya! refresh otomatis setelah edit/hapus
+                            );
+                          }).toList(),
 
-              PeminjamanCard(
-                id: '1',
-                nama: 'Dewi Lestari',
-                tglPinjam: '16/1/2026',
-                tglKembali: '23/1/2026',
-                alat: 'Tang Potong',
-                jumlah: 1,
-                status: 'Dipinjam',
-                statusColor: Colors.orange,
-                disetujuiOleh: 'Petugas 1',
-              ),
-              PeminjamanCard(
-                id: '2',
-                nama: 'Ahmad Rizky',
-                tglPinjam: '10/1/2026',
-                tglKembali: '17/1/2026',
-                alat: 'Tang Ampere',
-                jumlah: 1,
-                status: 'Dikembalikan',
-                statusColor: Colors.green,
-                dikembalikanOleh: 'Petugas 2',
-              ),
-
-              const SizedBox(height: 80),
-            ],
-          ),
-        ),
+                          const SizedBox(height: 100), // space bawah biar FAB tidak nutupin card terakhir
+                        ],
+                      ),
+                    ),
+                  ),
       ),
-
       floatingActionButton: FloatingActionButton(
         backgroundColor: const Color(0xFFFF7A00),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        onPressed: _showTambahPeminjamanDialog,
-        child: const Icon(Icons.add, color: Color(0xFFFFFFFF)),
+        onPressed: _showAddPeminjamanDialog,
+        child: const Icon(Icons.add, color: Colors.white),
       ),
-
       bottomNavigationBar: AdminBottomNav(
         currentIndex: _currentIndex,
         onTap: _onNavTap,
       ),
     );
   }
-  
-  Widget _buildLabel(String text) => Padding(
-    padding: const EdgeInsets.only(bottom: 6),
-    child: Text(
-      text,
-      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-    ),
-  );
-
-  InputDecoration _inputDecoration() => InputDecoration(
-    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-    enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: Color(0xFFFF8E01)),
-    ),
-    focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: Color(0xFFFF8E01), width: 2),
-    ),
-  );
 }

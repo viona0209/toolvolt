@@ -4,8 +4,8 @@ import 'package:toolvolt/admin/screen/admin_peminjaman.dart';
 import 'package:toolvolt/admin/screen/admin_pengaturan.dart';
 import 'package:toolvolt/admin/screen/admin_pengembalian.dart';
 import '../widgets/admin_bottom_nav.dart';
-import 'package:toolvolt/admin/widgets/info_card.dart';
-import 'package:toolvolt/admin/widgets/activity_item.dart';
+import 'package:toolvolt/admin/widgets/dashboard/info_card.dart';
+import 'package:toolvolt/admin/widgets/dashboard/activity_item.dart';
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
@@ -27,14 +27,14 @@ class _AdminDashboardState extends State<AdminDashboard> {
       case 0:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => const AdminAlatPage()),
+          MaterialPageRoute(builder: (_) => const AdminAlatScreen()),
         );
         break;
 
       case 1:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => const PeminjamanPage()),
+          MaterialPageRoute(builder: (_) => const PeminjamanScreen()),
         );
         break;
 
@@ -48,7 +48,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
       case 3:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => const PengembalianPage()),
+          MaterialPageRoute(builder: (_) => const PengembalianScreen()),
         );
         break;
 

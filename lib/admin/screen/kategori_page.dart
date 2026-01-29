@@ -1,7 +1,141 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-class KategoriPage extends StatelessWidget {
-  const KategoriPage({super.key});
+import '../widgets/kategori/kategori_card.dart';
+import '../widgets/kategori/tambah_kategori_dialog.dart';
+import '../widgets/kategori/edit_kategori_dialog.dart';
+import '../widgets/kategori/hapus_kategori_dialog.dart';
+
+final supabase = Supabase.instance.client;
+
+class KategoriScreen extends StatefulWidget {
+  const KategoriScreen({super.key});
+
+  @override
+  State<KategoriScreen> createState() => _KategoriScreenState();
+}
+
+class _KategoriScreenState extends State<KategoriScreen> {
+  List<Map<String, dynamic>> _kategoriList = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadKategori();
+  }
+
+  Future<void> _loadKategori() async {
+    setState(() => _isLoading = true);
+    try {
+      final response = await supabase
+          .from('kategori')
+          .select('id_kategori, nama_kategori')
+          .order('nama_kategori', ascending: true);
+
+      setState(() {
+        _kategoriList = List<Map<String, dynamic>>.from(response);
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal memuat kategori: $e')),
+        );
+      }
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _tambahKategori(String nama) async {
+    try {
+      await supabase.from('kategori').insert({'nama_kategori': nama.trim()});
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Kategori berhasil ditambahkan')),
+        );
+      }
+      await _loadKategori();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal menambah kategori: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _editKategori(int id, String namaBaru) async {
+    try {
+      await supabase
+          .from('kategori')
+          .update({'nama_kategori': namaBaru.trim()})
+          .eq('id_kategori', id);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Kategori berhasil diupdate')),
+        );
+      }
+      await _loadKategori();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal mengedit kategori: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _hapusKategori(int id, String nama) async {
+    try {
+      await supabase.from('kategori').delete().eq('id_kategori', id);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Kategori "$nama" berhasil dihapus')),
+        );
+      }
+      await _loadKategori();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal menghapus kategori: $e\n(Mungkin masih ada alat yang terkait?)')),
+        );
+      }
+    }
+  }
+
+  void _showTambahDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => TambahKategoriDialog(
+        onTambah: _tambahKategori,
+      ),
+    );
+  }
+
+  void _showEditDialog(int id, String namaLama) {
+    showDialog(
+      context: context,
+      builder: (context) => EditKategoriDialog(
+        id: id,
+        namaLama: namaLama,
+        onEdit: _editKategori,
+      ),
+    );
+  }
+
+  void _showHapusDialog(int id, String nama) {
+    showDialog(
+      context: context,
+      builder: (context) => HapusKategoriDialog(
+        id: id,
+        nama: nama,
+        onHapus: _hapusKategori,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -12,7 +146,7 @@ class KategoriPage extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         elevation: 4,
         child: const Icon(Icons.add, size: 32, color: Colors.white),
-        onPressed: () => _showTambahKategoriDialog(context),
+        onPressed: _showTambahDialog,
       ),
       body: SafeArea(
         child: Padding(
@@ -23,26 +157,18 @@ class KategoriPage extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(top: 20),
                 child: IconButton(
-                  icon: const Icon(
-                    Icons.arrow_back,
-                    size: 32,
-                    color: Colors.black,
-                  ),
+                  icon: const Icon(Icons.arrow_back, size: 32, color: Colors.black),
                   onPressed: () => Navigator.pop(context),
                 ),
               ),
-
               const SizedBox(height: 8),
-
               Center(
                 child: Image.asset(
                   "assets/image/logo1remove.png",
                   width: MediaQuery.of(context).size.width * 0.55,
                 ),
               ),
-
               const SizedBox(height: 30),
-
               const Text(
                 "Kategori",
                 style: TextStyle(
@@ -51,18 +177,25 @@ class KategoriPage extends StatelessWidget {
                   color: Colors.black,
                 ),
               ),
-
               const SizedBox(height: 16),
-
               Expanded(
-                child: ListView(
-                  children: const [
-                    KategoriCard(title: "Alat Ukur"),
-                    KategoriCard(title: "Alat Tangan"),
-                    KategoriCard(title: "Alat Listrik"),
-                    KategoriCard(title: "Komponen"),
-                  ],
-                ),
+                child: _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : _kategoriList.isEmpty
+                        ? const Center(child: Text('Belum ada kategori'))
+                        : ListView.builder(
+                            itemCount: _kategoriList.length,
+                            itemBuilder: (context, index) {
+                              final item = _kategoriList[index];
+                              final id = item['id_kategori'] as int;
+                              final nama = item['nama_kategori'] as String;
+                              return KategoriCard(
+                                title: nama,
+                                onEdit: () => _showEditDialog(id, nama),
+                                onDelete: () => _showHapusDialog(id, nama),
+                              );
+                            },
+                          ),
               ),
               const SizedBox(height: 16),
             ],
@@ -71,373 +204,4 @@ class KategoriPage extends StatelessWidget {
       ),
     );
   }
-
-  Widget _buildLabel(String text) => Padding(
-    padding: const EdgeInsets.only(bottom: 6),
-    child: Align(
-      alignment: Alignment.centerLeft,
-      child: Text(
-        text,
-        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-      ),
-    ),
-  );
-
-  InputDecoration _inputDecoration() => InputDecoration(
-    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-    enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: Color(0xFFFF7733)),
-    ),
-    focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: Color(0xFFFF7733), width: 2),
-    ),
-  );
-
-  void _showTambahKategoriDialog(BuildContext context) {
-    const primaryOrange = Color(0xFFFF7733);
-    final nameController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (dialogContext) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-            side: BorderSide(color: primaryOrange, width: 2),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  'Tambah Kategori',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
-                ),
-                const SizedBox(height: 24),
-
-                _buildLabel('Name'),
-                TextField(
-                  controller: nameController,
-                  decoration: _inputDecoration(),
-                ),
-                const SizedBox(height: 32),
-
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    OutlinedButton(
-                      onPressed: () => Navigator.pop(dialogContext),
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: primaryOrange, width: 1.5),
-                        foregroundColor: primaryOrange,
-                        minimumSize: const Size(110, 46),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text('Batal'),
-                    ),
-                    const SizedBox(width: 16),
-                    ElevatedButton(
-                      onPressed: () {
-                        // TODO: simpan kategori baru ke database/list
-                        Navigator.pop(dialogContext);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: primaryOrange,
-                        foregroundColor: Colors.white,
-                        minimumSize: const Size(130, 46),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text('Tambah'),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class KategoriCard extends StatelessWidget {
-  final String title;
-
-  const KategoriCard({super.key, required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    const primaryOrange = Color(0xFFFF7733);
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF3E4D8),
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(
-                Icons.category_outlined,
-                color: Color(0xFFFF7733),
-                size: 30,
-              ),
-              const SizedBox(width: 12),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.black87,
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 12),
-
-          const Divider(color: Color(0xFF888888), thickness: 0.8, height: 1),
-
-          const SizedBox(height: 16),
-
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: TextButton.icon(
-                  icon: const Icon(
-                    Icons.edit_outlined,
-                    size: 18,
-                    color: Colors.black87,
-                  ),
-                  label: const Text(
-                    "Edit",
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.black87,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                    backgroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      side: const BorderSide(color: Colors.black38),
-                    ),
-                  ),
-                  onPressed: () => _showEditKategoriDialog(context, title),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: TextButton.icon(
-                  icon: const Icon(
-                    Icons.delete_outline,
-                    size: 18,
-                    color: Colors.red,
-                  ),
-                  label: const Text(
-                    "Hapus",
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.red,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                    backgroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      side: const BorderSide(color: Colors.red, width: 1.2),
-                    ),
-                  ),
-                  onPressed: () => _showHapusKategoriDialog(context, title),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showEditKategoriDialog(BuildContext context, String oldTitle) {
-    const primaryOrange = Color(0xFFFF7733);
-    final nameController = TextEditingController(text: oldTitle);
-
-    showDialog(
-      context: context,
-      builder: (dialogContext) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-            side: BorderSide(color: primaryOrange, width: 2),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  'Edit Kategori',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
-                ),
-                const SizedBox(height: 24),
-
-                _buildLabel('Name'),
-                TextField(
-                  controller: nameController,
-                  decoration: _inputDecoration(),
-                ),
-                const SizedBox(height: 32),
-
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    OutlinedButton(
-                      onPressed: () => Navigator.pop(dialogContext),
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: primaryOrange, width: 1.5),
-                        foregroundColor: primaryOrange,
-                        minimumSize: const Size(110, 46),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text('Batal'),
-                    ),
-                    const SizedBox(width: 16),
-                    ElevatedButton(
-                      onPressed: () {
-                        // TODO: simpan edit
-                        Navigator.pop(dialogContext);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: primaryOrange,
-                        foregroundColor: Colors.white,
-                        minimumSize: const Size(130, 46),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text('Edit'),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  void _showHapusKategoriDialog(BuildContext context, String title) {
-    const primaryOrange = Color(0xFFFF7733);
-
-    showDialog(
-      context: context,
-      builder: (dialogContext) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-            side: BorderSide(color: primaryOrange, width: 2),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  'Hapus Kategori',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.red,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Apakah kamu yakin ingin menghapus kategori "$title" ini?',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 16),
-                ),
-                const SizedBox(height: 32),
-
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    OutlinedButton(
-                      onPressed: () => Navigator.pop(dialogContext),
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: primaryOrange, width: 1.5),
-                        foregroundColor: primaryOrange,
-                        minimumSize: const Size(110, 46),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text('Batal'),
-                    ),
-                    const SizedBox(width: 16),
-                    ElevatedButton(
-                      onPressed: () {
-                        // TODO: hapus kategori
-                        Navigator.pop(dialogContext);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFFF7733),
-                        foregroundColor: Colors.white,
-                        minimumSize: const Size(130, 46),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text('Hapus'),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildLabel(String text) => Padding(
-    padding: const EdgeInsets.only(bottom: 6),
-    child: Align(
-      alignment: Alignment.centerLeft,
-      child: Text(
-        text,
-        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-      ),
-    ),
-  );
-
-  InputDecoration _inputDecoration() => InputDecoration(
-    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-    enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: Color(0xFFFF7733)),
-    ),
-    focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: Color(0xFFFF7733), width: 2),
-    ),
-  );
 }

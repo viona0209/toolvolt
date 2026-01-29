@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
 
-class PenggunaPage extends StatelessWidget {
-  const PenggunaPage({super.key});
+import '../widgets/pengguna/pengguna_card.dart';
+import '../widgets/pengguna/tambah_pengguna_dialog.dart';
+import '../widgets/pengguna/edit_pengguna_dialog.dart';
+import '../widgets/pengguna/hapus_pengguna_dialog.dart';
+import '../widgets/pengguna/label_widget.dart';
+import '../widgets/pengguna/input_decoration.dart';
+
+class PenggunaScreen extends StatelessWidget {
+  const PenggunaScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -56,48 +63,10 @@ class PenggunaPage extends StatelessWidget {
 
                 Row(
                   children: [
-                    Expanded(
-                      child: TextField(
-                        decoration: InputDecoration(
-                          hintText: 'Cari',
-                          hintStyle: const TextStyle(
-                            color: Colors.black38,
-                            fontSize: 14,
-                          ),
-                          prefixIcon: const Icon(
-                            Icons.search,
-                            color: Colors.black54,
-                            size: 22,
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                            vertical: 12,
-                            horizontal: 16,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(
-                              color: Color(0xFFE0E0E0),
-                            ),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(
-                              color: Color(0xFFE0E0E0),
-                            ),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
-                              color: primaryOrange,
-                              width: 2,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
+                    Expanded(child: TextField(decoration: inputDecoration())),
                     const SizedBox(width: 12),
                     InkWell(
-                      onTap: () => _showTambahPenggunaDialog(context),
+                      onTap: () => showTambahPenggunaDialog(context),
                       child: Container(
                         width: 48,
                         height: 48,
@@ -362,11 +331,11 @@ class PenggunaPage extends StatelessWidget {
                         ),
                       ),
 
-                      _buildUserRow(context, 'Syahlia', 'Admin'),
+                      penggunaCard(context, 'Syahlia', 'Admin'),
                       Divider(height: 1, thickness: 1, color: Colors.grey[200]),
-                      _buildUserRow(context, 'Ayu Lestari', 'Peminjam'),
+                      penggunaCard(context, 'Ayu Lestari', 'Peminjam'),
                       Divider(height: 1, thickness: 1, color: Colors.grey[200]),
-                      _buildUserRow(context, 'Bayu Santoso', 'Petugas'),
+                      penggunaCard(context, 'Bayu Santoso', 'Petugas'),
                     ],
                   ),
                 ),
@@ -380,379 +349,12 @@ class PenggunaPage extends StatelessWidget {
     );
   }
 
-  Widget _buildUserRow(BuildContext context, String name, String role) {
-    const primaryOrange = Color(0xFFFF7733);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      child: Row(
-        children: [
-          Expanded(
-            flex: 3,
-            child: Text(
-              name,
-              style: const TextStyle(fontSize: 14, color: Colors.black87),
-            ),
-          ),
-          Expanded(
-            flex: 2,
-            child: Text(
-              role,
-              style: const TextStyle(fontSize: 14, color: Colors.black87),
-            ),
-          ),
-          SizedBox(
-            width: 70,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                InkWell(
-                  onTap: () => _showEditPenggunaDialog(context, name, role),
-                  child: const Padding(
-                    padding: EdgeInsets.all(6),
-                    child: Icon(
-                      Icons.edit_outlined,
-                      size: 18,
-                      color: Colors.black54,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                InkWell(
-                  onTap: () => _showHapusPenggunaDialog(context, name),
-                  child: const Padding(
-                    padding: EdgeInsets.all(6),
-                    child: Icon(
-                      Icons.delete_outline,
-                      size: 18,
-                      color: Colors.red,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+  Widget penggunaCard(BuildContext context, String name, String role) {
+    return PenggunaCard(
+      name: name,
+      role: role,
+      onEdit: () => showEditPenggunaDialog(context, name, role),
+      onDelete: () => showHapusPenggunaDialog(context, name),
     );
   }
-
-  void _showTambahPenggunaDialog(BuildContext context) {
-    const primaryOrange = Color(0xFFFF7733);
-    final namaController = TextEditingController();
-    final emailController = TextEditingController();
-    final passwordController = TextEditingController();
-    final confirmPasswordController = TextEditingController();
-    String? selectedRole;
-
-    showDialog(
-      context: context,
-      builder: (dialogContext) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-            side: BorderSide(color: primaryOrange, width: 2),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  'Tambah Pengguna',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
-                ),
-                const SizedBox(height: 24),
-
-                _buildLabel('Nama'),
-                TextField(
-                  controller: namaController,
-                  decoration: _inputDecoration(),
-                ),
-                const SizedBox(height: 16),
-
-                _buildLabel('Email'),
-                TextField(
-                  controller: emailController,
-                  decoration: _inputDecoration(),
-                ),
-                const SizedBox(height: 16),
-
-                _buildLabel('Kata Sandi'),
-                TextField(
-                  controller: passwordController,
-                  obscureText: true,
-                  decoration: _inputDecoration(),
-                ),
-                const SizedBox(height: 16),
-
-                _buildLabel('Konfirmasi Kata Sandi'),
-                TextField(
-                  controller: confirmPasswordController,
-                  obscureText: true,
-                  decoration: _inputDecoration(),
-                ),
-                const SizedBox(height: 16),
-
-                _buildLabel('Role'),
-                DropdownButtonFormField<String?>(
-                  value: selectedRole,
-                  isExpanded: true,
-                  decoration: _inputDecoration(),
-                  items: const [
-                    DropdownMenuItem(value: 'Admin', child: Text('Admin')),
-                    DropdownMenuItem(
-                      value: 'Peminjam',
-                      child: Text('Peminjam'),
-                    ),
-                    DropdownMenuItem(value: 'Petugas', child: Text('Petugas')),
-                  ],
-                  onChanged: (val) => selectedRole = val,
-                ),
-                const SizedBox(height: 32),
-
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    OutlinedButton(
-                      onPressed: () => Navigator.pop(dialogContext),
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: primaryOrange, width: 1.5),
-                        foregroundColor: primaryOrange,
-                        minimumSize: const Size(110, 46),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text('Batal'),
-                    ),
-                    const SizedBox(width: 16),
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(dialogContext);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: primaryOrange,
-                        foregroundColor: Colors.white,
-                        minimumSize: const Size(130, 46),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text('Tambah'),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  void _showEditPenggunaDialog(BuildContext context, String name, String role) {
-    const primaryOrange = Color(0xFFFF7733);
-    final namaController = TextEditingController(text: name);
-    final emailController = TextEditingController();
-    final passwordController = TextEditingController();
-    final confirmPasswordController = TextEditingController();
-    String? selectedRole = role;
-
-    showDialog(
-      context: context,
-      builder: (dialogContext) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-            side: BorderSide(color: primaryOrange, width: 2),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  'Edit Pengguna',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
-                ),
-                const SizedBox(height: 24),
-
-                _buildLabel('Nama'),
-                TextField(
-                  controller: namaController,
-                  decoration: _inputDecoration(),
-                ),
-                const SizedBox(height: 16),
-
-                _buildLabel('Email'),
-                TextField(
-                  controller: emailController,
-                  decoration: _inputDecoration(),
-                ),
-                const SizedBox(height: 16),
-
-                _buildLabel('Kata Sandi'),
-                TextField(
-                  controller: passwordController,
-                  obscureText: true,
-                  decoration: _inputDecoration(),
-                ),
-                const SizedBox(height: 16),
-
-                _buildLabel('Konfirmasi Kata Sandi'),
-                TextField(
-                  controller: confirmPasswordController,
-                  obscureText: true,
-                  decoration: _inputDecoration(),
-                ),
-                const SizedBox(height: 16),
-
-                _buildLabel('Role'),
-                DropdownButtonFormField<String?>(
-                  value: selectedRole,
-                  isExpanded: true,
-                  decoration: _inputDecoration(),
-                  items: const [
-                    DropdownMenuItem(value: 'Admin', child: Text('Admin')),
-                    DropdownMenuItem(
-                      value: 'Peminjam',
-                      child: Text('Peminjam'),
-                    ),
-                    DropdownMenuItem(value: 'Petugas', child: Text('Petugas')),
-                  ],
-                  onChanged: (val) => selectedRole = val,
-                ),
-                const SizedBox(height: 32),
-
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    OutlinedButton(
-                      onPressed: () => Navigator.pop(dialogContext),
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: primaryOrange, width: 1.5),
-                        foregroundColor: primaryOrange,
-                        minimumSize: const Size(110, 46),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text('Batal'),
-                    ),
-                    const SizedBox(width: 16),
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(dialogContext);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: primaryOrange,
-                        foregroundColor: Colors.white,
-                        minimumSize: const Size(130, 46),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text('Edit'),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  void _showHapusPenggunaDialog(BuildContext context, String name) {
-    const primaryOrange = Color(0xFFFF7733);
-
-    showDialog(
-      context: context,
-      builder: (dialogContext) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-            side: BorderSide(color: primaryOrange, width: 2),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  'Hapus Pengguna',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Apakah kamu yakin ingin menghapus pengguna "$name" ini?',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 16),
-                ),
-                const SizedBox(height: 32),
-
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    OutlinedButton(
-                      onPressed: () => Navigator.pop(dialogContext),
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: primaryOrange, width: 1.5),
-                        foregroundColor: primaryOrange,
-                        minimumSize: const Size(110, 46),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text('Batal'),
-                    ),
-                    const SizedBox(width: 16),
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(dialogContext);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: primaryOrange,
-                        foregroundColor: Colors.white,
-                        minimumSize: const Size(130, 46),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text('Hapus'),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildLabel(String text) => Padding(
-    padding: const EdgeInsets.only(bottom: 6),
-    child: Align(
-      alignment: Alignment.centerLeft,
-      child: Text(
-        text,
-        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-      ),
-    ),
-  );
-
-  InputDecoration _inputDecoration() => InputDecoration(
-    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-    enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: Color(0xFFFF7733)),
-    ),
-    focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: Color(0xFFFF7733), width: 2),
-    ),
-  );
 }

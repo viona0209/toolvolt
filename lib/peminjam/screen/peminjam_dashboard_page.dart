@@ -258,14 +258,6 @@ class _PeminjamDashboardPageState extends State<PeminjamDashboardPage> {
                                               color: Colors.black87,
                                             ),
                                           ),
-                                          Text(
-                                            'Peminjaman',
-                                            style: TextStyle(
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.w500,
-                                              color: Colors.black87,
-                                            ),
-                                          ),
                                         ],
                                       ),
                                     ],
@@ -314,7 +306,7 @@ class _PeminjamDashboardPageState extends State<PeminjamDashboardPage> {
               const SizedBox(height: 32),
 
               const Text(
-                'Riwayat',
+                'Riwayat ',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
 

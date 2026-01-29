@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:toolvolt/admin/widgets/info_card.dart';
-import 'package:toolvolt/admin/widgets/activity_item.dart';
+import 'package:toolvolt/admin/widgets/dashboard/info_card.dart';
+import 'package:toolvolt/admin/widgets/dashboard/activity_item.dart';
 import '../widgets/petugas_bottom_nav.dart';
 import 'petugas_laporan_page.dart';
 import 'petugas_peminjaman_page.dart';

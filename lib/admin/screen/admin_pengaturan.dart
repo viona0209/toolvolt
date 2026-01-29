@@ -30,13 +30,13 @@ class _PengaturanPageState extends State<PengaturanPage> {
       case 0:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => const AdminAlatPage()),
+          MaterialPageRoute(builder: (_) => const AdminAlatScreen()),
         );
         break;
       case 1:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => const PeminjamanPage()),
+          MaterialPageRoute(builder: (_) => const PeminjamanScreen()),
         );
         break;
       case 2:
@@ -48,7 +48,7 @@ class _PengaturanPageState extends State<PengaturanPage> {
       case 3:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => const PengembalianPage()),
+          MaterialPageRoute(builder: (_) => const PengembalianScreen()),
         );
         break;
       case 4:
@@ -181,7 +181,7 @@ class _PengaturanPageState extends State<PengaturanPage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => const KategoriPage(),
+                            builder: (_) => const KategoriScreen(),
                           ),
                         );
                       },
@@ -192,7 +192,7 @@ class _PengaturanPageState extends State<PengaturanPage> {
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (_) => const DendaPage()),
+                          MaterialPageRoute(builder: (_) => const DendaScreen()),
                         );
                       },
                     ),
@@ -215,7 +215,7 @@ class _PengaturanPageState extends State<PengaturanPage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => const PenggunaPage(),
+                            builder: (_) => const PenggunaScreen(),
                           ),
                         );
                       },
