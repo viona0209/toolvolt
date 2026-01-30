@@ -1,16 +1,22 @@
 import 'package:flutter/material.dart';
+import '../../services/pengguna_service.dart';
 import 'label_widget.dart';
 import 'input_decoration.dart';
 
-void showEditPenggunaDialog(BuildContext context, String name, String role) {
+Future<bool?> showEditPenggunaDialog(
+  BuildContext context,
+  int idPengguna,
+  String nama,
+  String username,
+  String role,
+) {
   const primaryOrange = Color(0xFFFF7733);
-  final namaController = TextEditingController(text: name);
-  final emailController = TextEditingController();
-  final passwordController = TextEditingController();
-  final confirmPasswordController = TextEditingController();
+
+  final namaController = TextEditingController(text: nama);
+  final usernameController = TextEditingController(text: username);
   String? selectedRole = role;
 
-  showDialog(
+  return showDialog<bool>(
     context: context,
     builder: (dialogContext) {
       return Dialog(
@@ -24,84 +30,68 @@ void showEditPenggunaDialog(BuildContext context, String name, String role) {
             mainAxisSize: MainAxisSize.min,
             children: [
               const Text(
-                'Edit Pengguna',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+                "Edit Pengguna",
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 24),
 
-              labelWidget('Nama'),
+              labelWidget("Nama"),
               TextField(
                 controller: namaController,
                 decoration: inputDecoration(),
               ),
               const SizedBox(height: 16),
 
-              labelWidget('Email'),
+              labelWidget("Username"),
               TextField(
-                controller: emailController,
+                controller: usernameController,
                 decoration: inputDecoration(),
               ),
               const SizedBox(height: 16),
 
-              labelWidget('Kata Sandi'),
-              TextField(
-                controller: passwordController,
-                obscureText: true,
-                decoration: inputDecoration(),
-              ),
-              const SizedBox(height: 16),
-
-              labelWidget('Konfirmasi Kata Sandi'),
-              TextField(
-                controller: confirmPasswordController,
-                obscureText: true,
-                decoration: inputDecoration(),
-              ),
-              const SizedBox(height: 16),
-
-              labelWidget('Role'),
-              DropdownButtonFormField<String?>(
+              labelWidget("Role"),
+              DropdownButtonFormField<String>(
                 value: selectedRole,
-                isExpanded: true,
                 decoration: inputDecoration(),
                 items: const [
-                  DropdownMenuItem(value: 'Admin', child: Text('Admin')),
-                  DropdownMenuItem(value: 'Peminjam', child: Text('Peminjam')),
-                  DropdownMenuItem(value: 'Petugas', child: Text('Petugas')),
+                  DropdownMenuItem(value: 'admin', child: Text('Admin')),
+                  DropdownMenuItem(value: 'petugas', child: Text('Petugas')),
+                  DropdownMenuItem(value: 'peminjam', child: Text('Peminjam')),
                 ],
                 onChanged: (val) => selectedRole = val,
               ),
-              const SizedBox(height: 32),
+
+              const SizedBox(height: 30),
 
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   OutlinedButton(
-                    onPressed: () => Navigator.pop(dialogContext),
-                    style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: primaryOrange, width: 1.5),
-                      foregroundColor: primaryOrange,
-                      minimumSize: const Size(110, 46),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: const Text('Batal'),
+                    onPressed: () => Navigator.pop(dialogContext, false),
+                    child: const Text("Batal"),
                   ),
                   const SizedBox(width: 16),
+
                   ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(dialogContext);
+                    onPressed: () async {
+                      final service = PenggunaService();
+
+                      final res = await service.editPengguna(
+                        idPengguna: idPengguna,
+                        nama: namaController.text.trim(),
+                        username: usernameController.text.trim(),
+                        role: selectedRole ?? role,
+                      );
+
+                      if (res == null) {
+                        Navigator.pop(dialogContext, true);
+                      } else {
+                        ScaffoldMessenger.of(
+                          context,
+                        ).showSnackBar(SnackBar(content: Text(res)));
+                      }
                     },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: primaryOrange,
-                      foregroundColor: Colors.white,
-                      minimumSize: const Size(130, 46),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: const Text('Edit'),
+                    child: const Text("Edit"),
                   ),
                 ],
               ),

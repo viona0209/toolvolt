@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
 
-void showHapusPenggunaDialog(BuildContext context, String name) {
+import '../../services/pengguna_service.dart';
+
+Future<bool?> showHapusPenggunaDialog(
+  BuildContext context,
+  int idPengguna,
+  String uidAuth,
+  String nama,
+) {
   const primaryOrange = Color(0xFFFF7733);
 
-  showDialog(
+  return showDialog<bool>(
     context: context,
     builder: (dialogContext) {
       return Dialog(
@@ -16,50 +23,47 @@ void showHapusPenggunaDialog(BuildContext context, String name) {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
-                'Hapus Pengguna',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
-              ),
+
+              const Text("Hapus Pengguna", style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
               const SizedBox(height: 16),
+
               Text(
-                'Apakah kamu yakin ingin menghapus pengguna "$name" ini?',
+                "Apakah kamu yakin ingin menghapus \"$nama\"?",
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 16),
               ),
+
               const SizedBox(height: 32),
 
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   OutlinedButton(
-                    onPressed: () => Navigator.pop(dialogContext),
-                    style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: primaryOrange, width: 1.5),
-                      foregroundColor: primaryOrange,
-                      minimumSize: const Size(110, 46),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: const Text('Batal'),
+                    onPressed: () => Navigator.pop(dialogContext, false),
+                    child: const Text("Batal"),
                   ),
                   const SizedBox(width: 16),
+
                   ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(dialogContext);
+                    onPressed: () async {
+                      final service = PenggunaService();
+
+                      final res = await service.hapusPengguna(
+                        idPengguna: idPengguna,
+                        uidAuth: uidAuth,
+                      );
+
+                      if (res == null) {
+                        Navigator.pop(dialogContext, true);
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(res)),
+                        );
+                      }
                     },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: primaryOrange,
-                      foregroundColor: Colors.white,
-                      minimumSize: const Size(130, 46),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: const Text('Hapus'),
+                    child: const Text("Hapus"),
                   ),
                 ],
-              ),
+              )
             ],
           ),
         ),
@@ -67,3 +71,4 @@ void showHapusPenggunaDialog(BuildContext context, String name) {
     },
   );
 }
+
