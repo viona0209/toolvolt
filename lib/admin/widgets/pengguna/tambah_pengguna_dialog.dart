@@ -7,9 +7,7 @@ Future<bool?> showTambahPenggunaDialog(BuildContext context) {
   const primaryOrange = Color(0xFFFF7733);
 
   final namaController = TextEditingController();
-  final emailController = TextEditingController();
-  final passwordController = TextEditingController();
-  final confirmPasswordController = TextEditingController();
+  final emailController = TextEditingController(); // optional
   String? selectedRole;
 
   return showDialog<bool>(
@@ -25,8 +23,10 @@ Future<bool?> showTambahPenggunaDialog(BuildContext context) {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-
-              const Text('Tambah Pengguna', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+              const Text(
+                'Tambah Pengguna',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+              ),
               const SizedBox(height: 24),
 
               // Input Nama
@@ -34,19 +34,9 @@ Future<bool?> showTambahPenggunaDialog(BuildContext context) {
               TextField(controller: namaController, decoration: inputDecoration()),
               const SizedBox(height: 16),
 
-              // Email
+              // Email (optional)
               labelWidget('Email'),
               TextField(controller: emailController, decoration: inputDecoration()),
-              const SizedBox(height: 16),
-
-              // Password
-              labelWidget('Kata Sandi'),
-              TextField(controller: passwordController, obscureText: true, decoration: inputDecoration()),
-              const SizedBox(height: 16),
-
-              // Confirm Password
-              labelWidget('Konfirmasi Kata Sandi'),
-              TextField(controller: confirmPasswordController, obscureText: true, decoration: inputDecoration()),
               const SizedBox(height: 16),
 
               // Role
@@ -76,20 +66,23 @@ Future<bool?> showTambahPenggunaDialog(BuildContext context) {
                   const SizedBox(width: 16),
                   ElevatedButton(
                     onPressed: () async {
-                      if (passwordController.text != confirmPasswordController.text) {
+                      if (namaController.text.trim().isEmpty) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text("Password tidak sama")),
+                          const SnackBar(content: Text("Nama wajib diisi")),
                         );
                         return;
                       }
 
                       final service = PenggunaService();
                       final res = await service.tambahPengguna(
-                        email: emailController.text.trim(),
-                        password: passwordController.text.trim(),
                         nama: namaController.text.trim(),
-                        username: emailController.text.split("@")[0],
+                        username: emailController.text.trim().isEmpty
+                            ? namaController.text.trim().replaceAll(' ', '_').toLowerCase()
+                            : emailController.text.trim().split("@")[0],
                         role: selectedRole ?? "peminjam",
+                        email: emailController.text.trim().isEmpty
+                            ? null
+                            : emailController.text.trim(),
                       );
 
                       if (res == null) {

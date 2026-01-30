@@ -35,6 +35,7 @@ Future<bool?> showEditPenggunaDialog(
               ),
               const SizedBox(height: 24),
 
+              // Nama
               labelWidget("Nama"),
               TextField(
                 controller: namaController,
@@ -42,6 +43,7 @@ Future<bool?> showEditPenggunaDialog(
               ),
               const SizedBox(height: 16),
 
+              // Username
               labelWidget("Username"),
               TextField(
                 controller: usernameController,
@@ -49,6 +51,7 @@ Future<bool?> showEditPenggunaDialog(
               ),
               const SizedBox(height: 16),
 
+              // Role
               labelWidget("Role"),
               DropdownButtonFormField<String>(
                 value: selectedRole,
@@ -60,9 +63,9 @@ Future<bool?> showEditPenggunaDialog(
                 ],
                 onChanged: (val) => selectedRole = val,
               ),
-
               const SizedBox(height: 30),
 
+              // Tombol aksi
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -71,7 +74,6 @@ Future<bool?> showEditPenggunaDialog(
                     child: const Text("Batal"),
                   ),
                   const SizedBox(width: 16),
-
                   ElevatedButton(
                     onPressed: () async {
                       final service = PenggunaService();
@@ -86,9 +88,9 @@ Future<bool?> showEditPenggunaDialog(
                       if (res == null) {
                         Navigator.pop(dialogContext, true);
                       } else {
-                        ScaffoldMessenger.of(
-                          context,
-                        ).showSnackBar(SnackBar(content: Text(res)));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(res)),
+                        );
                       }
                     },
                     child: const Text("Edit"),

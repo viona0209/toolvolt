@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-
 import '../../services/pengguna_service.dart';
 
 Future<bool?> showHapusPenggunaDialog(
   BuildContext context,
   int idPengguna,
-  String uidAuth,
   String nama,
 ) {
   const primaryOrange = Color(0xFFFF7733);
@@ -23,17 +21,16 @@ Future<bool?> showHapusPenggunaDialog(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-
-              const Text("Hapus Pengguna", style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+              const Text(
+                "Hapus Pengguna",
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+              ),
               const SizedBox(height: 16),
-
               Text(
                 "Apakah kamu yakin ingin menghapus \"$nama\"?",
                 textAlign: TextAlign.center,
               ),
-
               const SizedBox(height: 32),
-
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -42,14 +39,12 @@ Future<bool?> showHapusPenggunaDialog(
                     child: const Text("Batal"),
                   ),
                   const SizedBox(width: 16),
-
                   ElevatedButton(
                     onPressed: () async {
                       final service = PenggunaService();
 
                       final res = await service.hapusPengguna(
                         idPengguna: idPengguna,
-                        uidAuth: uidAuth,
                       );
 
                       if (res == null) {
@@ -63,7 +58,7 @@ Future<bool?> showHapusPenggunaDialog(
                     child: const Text("Hapus"),
                   ),
                 ],
-              )
+              ),
             ],
           ),
         ),
@@ -71,4 +66,3 @@ Future<bool?> showHapusPenggunaDialog(
     },
   );
 }
-

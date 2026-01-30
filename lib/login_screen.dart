@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:toolvolt/admin/screen/admin_dashboard.dart';
+import 'package:toolvolt/petugas/screen/petugas_dashboard.dart';
 import 'package:toolvolt/peminjam/screen/peminjam_dashboard_page.dart';
-
-import 'petugas/screen/petugas_dashboard.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -22,28 +21,25 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _loading = true);
 
     try {
-      /// 1. LOGIN AUTH
-      final authResponse = await Supabase.instance.client.auth
-          .signInWithPassword(
-            email: _emailController.text.trim(),
-            password: _passwordController.text.trim(),
-          );
-
-      final user = authResponse.user;
-      if (user == null) {
-        throw 'Login gagal';
-      }
-
-      /// 2. AMBIL DATA PENGGUNA
+      // 1. Ambil pengguna dari tabel 'pengguna' berdasarkan email
       final pengguna = await Supabase.instance.client
           .from('pengguna')
           .select()
-          .eq('uid_auth', user.id)
-          .single();
+          .eq('email', _emailController.text.trim())
+          .maybeSingle();
+
+      if (pengguna == null) {
+        throw 'Email tidak ditemukan';
+      }
+
+      // 2. Cek password
+      if (pengguna['password'] != _passwordController.text.trim()) {
+        throw 'Password salah';
+      }
 
       final String role = pengguna['role'];
 
-      /// 3. ROUTING BERDASARKAN ROLE
+      // 3. Routing berdasarkan role
       if (!mounted) return;
 
       if (role == 'admin') {
@@ -63,9 +59,8 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(e.toString())));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.toString())));
     } finally {
       setState(() => _loading = false);
     }
@@ -82,28 +77,21 @@ class _LoginScreenState extends State<LoginScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 40),
-
               IconButton(
                 onPressed: () => Navigator.pop(context),
                 icon: const Icon(Icons.arrow_back),
               ),
-
               SizedBox(height: MediaQuery.of(context).size.height * 0.05),
-
               const Text(
                 'Selamat Datang!',
                 style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
               ),
-
               const SizedBox(height: 20),
-
               const Text(
                 'Kelola dan pinjam peralatan ketenagalistrikan dengan lebih mudah dan efisien.',
                 style: TextStyle(color: Colors.grey, fontSize: 15),
               ),
-
               const SizedBox(height: 32),
-
               const Text(
                 'Email',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
@@ -118,9 +106,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
-
               const SizedBox(height: 24),
-
               const Text(
                 'Password',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
@@ -136,9 +122,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
-
               const SizedBox(height: 32),
-
               SizedBox(
                 width: double.infinity,
                 height: 67,

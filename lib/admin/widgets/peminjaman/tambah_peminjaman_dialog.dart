@@ -144,14 +144,19 @@ class _TambahPeminjamanDialogState extends State<TambahPeminjamanDialog> {
     }
 
     try {
-      final peminjamanRes = await supabase.from('peminjaman').insert({
-        'id_pengguna': selectedPenggunaId,
-        'tanggal_pinjam': DateFormat('yyyy-MM-dd').format(tanggalPinjam!),
-        'tanggal_kembali': DateFormat('yyyy-MM-dd').format(tanggalKembali!),
-        'status': 'dipinjam',
-      }).select('id_peminjaman').single();
+      final peminjamanRes = await supabase
+    .from('peminjaman')
+    .insert({
+      'id_pengguna': selectedPenggunaId,
+      'tanggal_pinjam': DateFormat('yyyy-MM-dd').format(tanggalPinjam!),
+      'tanggal_kembali': DateFormat('yyyy-MM-dd').format(tanggalKembali!),
+      'status': 'dipinjam',
+    })
+    .select('id_peminjaman')
+    .single();
 
-      final idPeminjaman = peminjamanRes['id_peminjaman'] as int;
+final idPeminjaman = peminjamanRes['id_peminjaman'];
+
 
       for (var item in selectedItems) {
         await supabase.from('detail_peminjaman').insert({

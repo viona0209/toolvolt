@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-
 import '../services/pengguna_service.dart';
 import '../widgets/pengguna/pengguna_card.dart';
 import '../widgets/pengguna/tambah_pengguna_dialog.dart';
@@ -41,13 +39,13 @@ class _PenggunaScreenState extends State<PenggunaScreen> {
 
     final totalPengguna = penggunaList.length;
 
-final totalPetugas = penggunaList.where(
-  (e) => e['role'] == 'petugas' || e['role'] == 'admin'
-).length;
+    final totalPetugas = penggunaList.where(
+      (e) => e['role'] == 'petugas' || e['role'] == 'admin'
+    ).length;
 
-final totalPeminjam = penggunaList.where(
-  (e) => e['role'] == 'peminjam'
-).length;
+    final totalPeminjam = penggunaList.where(
+      (e) => e['role'] == 'peminjam'
+    ).length;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -109,7 +107,7 @@ final totalPeminjam = penggunaList.where(
                           const SizedBox(width: 12),
                           InkWell(
                             onTap: () async {
-                              final success = showTambahPenggunaDialog(context);
+                              final success = await showTambahPenggunaDialog(context);
                               if (success == true) loadData();
                             },
                             child: Container(
@@ -134,56 +132,55 @@ final totalPeminjam = penggunaList.where(
                       // ===== Total Card =====
                       SizedBox(
                         child: IntrinsicHeight(
-  child: Row(
-    crossAxisAlignment: CrossAxisAlignment.stretch,
-    children: [
-      Expanded(
-        flex: 2,
-        child: _buildTotalCard(
-          icon: Icons.person_outline,
-          color: primaryOrange,
-          title: "Total Pengguna",
-          total: totalPengguna,
-          subtitle: "Terdaftar",
-        ),
-      ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Expanded(
+                                flex: 2,
+                                child: _buildTotalCard(
+                                  icon: Icons.person_outline,
+                                  color: primaryOrange,
+                                  title: "Total Pengguna",
+                                  total: totalPengguna,
+                                  subtitle: "Terdaftar",
+                                ),
+                              ),
 
-      const SizedBox(width: 12),
+                              const SizedBox(width: 12),
 
-      Expanded(
-        flex: 2,
-        child: Column(
-          children: [
-            // dua kotak kanan dengan tinggi sama
-            SizedBox(
-              height: 200,
-              width: 150,
-              child: _buildTotalCard(
-                icon: Icons.shield_outlined,
-                color: primaryOrange,
-                title: "petugas",
-                total: totalPetugas,
-                subtitle: "Staff",
-              ),
-            ),
-            const SizedBox(height: 12),
-            SizedBox(
-              width: 150,
-              height: 200,
-              child: _buildTotalCard(
-                icon: Icons.person_outline,
-                color: primaryOrange,
-                title: "Peminjam",
-                total: totalPeminjam,
-                subtitle: "Siswa",
-              ),
-            ),
-          ],
-        ),
-      ),
-    ],
-  ),
-),
+                              Expanded(
+                                flex: 2,
+                                child: Column(
+                                  children: [
+                                    SizedBox(
+                                      height: 200,
+                                      width: 150,
+                                      child: _buildTotalCard(
+                                        icon: Icons.shield_outlined,
+                                        color: primaryOrange,
+                                        title: "Petugas",
+                                        total: totalPetugas,
+                                        subtitle: "Staff",
+                                      ),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    SizedBox(
+                                      width: 150,
+                                      height: 200,
+                                      child: _buildTotalCard(
+                                        icon: Icons.person_outline,
+                                        color: primaryOrange,
+                                        title: "Peminjam",
+                                        total: totalPeminjam,
+                                        subtitle: "Siswa",
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
 
                       const SizedBox(height: 28),
@@ -218,7 +215,7 @@ final totalPeminjam = penggunaList.where(
                                     name: item['nama'] ?? "-",
                                     role: item['role'] ?? "",
                                     onEdit: () async {
-                                      final success = showEditPenggunaDialog(
+                                      final success = await showEditPenggunaDialog(
                                         context,
                                         item['id_pengguna'],
                                         item['nama'],
@@ -228,13 +225,11 @@ final totalPeminjam = penggunaList.where(
                                       if (success == true) loadData();
                                     },
                                     onDelete: () async {
-                                      final success =
-                                          await showHapusPenggunaDialog(
-                                            context,
-                                            item['id_pengguna'],
-                                            item['uid_auth'],
-                                            item['nama'],
-                                          );
+                                      final success = await showHapusPenggunaDialog(
+                                        context,
+                                        item['id_pengguna'], // hapus uid_auth
+                                        item['nama'],
+                                      );
                                       if (success == true) loadData();
                                     },
                                   ),

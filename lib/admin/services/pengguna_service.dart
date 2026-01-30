@@ -16,41 +16,27 @@ class PenggunaService {
   }
 
   // =============================
-  // 2. Tambah pengguna (HARUS buat Auth user dulu!)
+  // 2. Tambah pengguna (langsung ke tabel)
   // =============================
   Future<String?> tambahPengguna({
-  required String email,
-  required String password,
-  required String nama,
-  required String username,
-  required String role,
-}) async {
-  try {
-    // 1. Buat akun Auth BIASA (bukan admin)
-    final authRes = await supabase.auth.signUp(
-      email: email,
-      password: password,
-    );
+    required String nama,
+    required String username,
+    required String role,
+    String? email, // optional
+  }) async {
+    try {
+      await supabase.from('pengguna').insert({
+        'nama': nama,
+        'username': username,
+        'role': role,
+        'email': email,
+      });
 
-    final uid = authRes.user?.id;
-
-    if (uid == null) {
-      return "Gagal membuat akun auth.";
+      return null; // sukses
+    } catch (e) {
+      return e.toString();
     }
-
-    // 2. Simpan ke tabel pengguna
-    await supabase.from('pengguna').insert({
-      'uid_auth': uid,
-      'nama': nama,
-      'username': username,
-      'role': role,
-    });
-
-    return null;
-  } catch (e) {
-    return e.toString();
   }
-}
 
   // =============================
   // 3. Edit pengguna
@@ -60,35 +46,32 @@ class PenggunaService {
     required String nama,
     required String username,
     required String role,
+    String? email, // optional
   }) async {
     try {
       await supabase.from('pengguna').update({
         'nama': nama,
         'username': username,
         'role': role,
+        'email': email,
       }).eq('id_pengguna', idPengguna);
 
-      return null;
+      return null; // sukses
     } catch (e) {
       return e.toString();
     }
   }
 
   // =============================
-  // 4. Hapus pengguna (hapus tabel + hapus Auth User)
+  // 4. Hapus pengguna
   // =============================
   Future<String?> hapusPengguna({
     required int idPengguna,
-    required String uidAuth,
   }) async {
     try {
-      // Hapus dari tabel pengguna
       await supabase.from('pengguna').delete().eq('id_pengguna', idPengguna);
 
-      // Hapus user auth dari Supabase Auth
-      await supabase.auth.admin.deleteUser(uidAuth);
-
-      return null;
+      return null; // sukses
     } catch (e) {
       return e.toString();
     }
