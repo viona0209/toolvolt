@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:top_snackbar_flutter/top_snack_bar.dart';
+import 'package:top_snackbar_flutter/custom_snack_bar.dart';
 
 final supabase = Supabase.instance.client;
 
@@ -26,7 +28,8 @@ class _TambahPeminjamanDialogState extends State<TambahPeminjamanDialog> {
   DateTime? tanggalPinjam;
   DateTime? tanggalKembali;
 
-  bool isLoading = true;
+  bool isLoading = true; // untuk loading saat ambil data
+  bool isSubmitting = false; // untuk loading saat submit form
 
   static const primaryOrange = Color(0xFFFF8E01);
 
@@ -41,6 +44,7 @@ class _TambahPeminjamanDialogState extends State<TambahPeminjamanDialog> {
       final penggunaRes = await supabase
           .from('pengguna')
           .select('id_pengguna, nama')
+          .eq('role', 'peminjam')
           .order('nama');
 
       final alatRes = await supabase
@@ -59,8 +63,11 @@ class _TambahPeminjamanDialogState extends State<TambahPeminjamanDialog> {
     } catch (e) {
       if (mounted) {
         setState(() => isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal memuat data: $e')),
+        showTopSnackBar(
+          Overlay.of(context),
+          CustomSnackBar.error(
+            message: 'Gagal memuat data: $e',
+          ),
         );
       }
     }
@@ -70,7 +77,6 @@ class _TambahPeminjamanDialogState extends State<TambahPeminjamanDialog> {
     final initialDate = isPinjam
         ? DateTime.now()
         : (tanggalPinjam ?? DateTime.now()).add(const Duration(days: 7));
-
     final firstDate = isPinjam
         ? DateTime.now().subtract(const Duration(days: 365))
         : (tanggalPinjam ?? DateTime.now());
@@ -86,7 +92,6 @@ class _TambahPeminjamanDialogState extends State<TambahPeminjamanDialog> {
       setState(() {
         if (isPinjam) {
           tanggalPinjam = picked;
-          // Reset tanggal kembali jika lebih awal dari pinjam
           if (tanggalKembali != null && tanggalKembali!.isBefore(picked)) {
             tanggalKembali = null;
           }
@@ -111,52 +116,51 @@ class _TambahPeminjamanDialogState extends State<TambahPeminjamanDialog> {
   }
 
   Future<void> _savePeminjaman() async {
+    setState(() {
+      isSubmitting = true;
+    });
+
+    // Validasi form
+    String? errorMsg;
     if (selectedPenggunaId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Pilih peminjam terlebih dahulu')),
-      );
-      return;
-    }
-
-    if (selectedItems.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Tambahkan minimal satu alat')),
-      );
-      return;
-    }
-
-    if (tanggalPinjam == null || tanggalKembali == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Lengkapi tanggal pinjam dan kembali')),
-      );
-      return;
-    }
-
-    for (var item in selectedItems) {
-      if (item['jumlah'] > item['stok_tersedia']) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Jumlah ${item['nama_alat']} melebihi stok tersedia'),
-          ),
-        );
-        return;
+      errorMsg = 'Pilih peminjam terlebih dahulu';
+    } else if (selectedItems.isEmpty) {
+      errorMsg = 'Tambahkan minimal satu alat';
+    } else if (tanggalPinjam == null || tanggalKembali == null) {
+      errorMsg = 'Lengkapi tanggal pinjam dan kembali';
+    } else {
+      for (var item in selectedItems) {
+        if (item['jumlah'] > item['stok_tersedia']) {
+          errorMsg = 'Jumlah ${item['nama_alat']} melebihi stok tersedia';
+          break;
+        }
       }
+    }
+
+    if (errorMsg != null) {
+      setState(() => isSubmitting = false);
+      showTopSnackBar(
+        Overlay.of(context),
+        CustomSnackBar.error(
+          message: errorMsg,
+        ),
+      );
+      return;
     }
 
     try {
       final peminjamanRes = await supabase
-    .from('peminjaman')
-    .insert({
-      'id_pengguna': selectedPenggunaId,
-      'tanggal_pinjam': DateFormat('yyyy-MM-dd').format(tanggalPinjam!),
-      'tanggal_kembali': DateFormat('yyyy-MM-dd').format(tanggalKembali!),
-      'status': 'dipinjam',
-    })
-    .select('id_peminjaman')
-    .single();
+          .from('peminjaman')
+          .insert({
+            'id_pengguna': selectedPenggunaId,
+            'tanggal_pinjam': DateFormat('yyyy-MM-dd').format(tanggalPinjam!),
+            'tanggal_kembali': DateFormat('yyyy-MM-dd').format(tanggalKembali!),
+            'status': 'dipinjam',
+          })
+          .select('id_peminjaman')
+          .single();
 
-final idPeminjaman = peminjamanRes['id_peminjaman'];
-
+      final idPeminjaman = peminjamanRes['id_peminjaman'];
 
       for (var item in selectedItems) {
         await supabase.from('detail_peminjaman').insert({
@@ -166,18 +170,26 @@ final idPeminjaman = peminjamanRes['id_peminjaman'];
         });
       }
 
-      Navigator.pop(context);
+      setState(() => isSubmitting = false);
       widget.onSuccess();
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Peminjaman berhasil ditambahkan'),
-          backgroundColor: Colors.green,
+      showTopSnackBar(
+        Overlay.of(context),
+        CustomSnackBar.success(
+          message: 'Peminjaman berhasil ditambahkan',
         ),
       );
+
+      Future.delayed(const Duration(seconds: 2), () {
+        if (mounted) Navigator.pop(context);
+      });
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal menyimpan: $e')),
+      setState(() => isSubmitting = false);
+      showTopSnackBar(
+        Overlay.of(context),
+        CustomSnackBar.error(
+          message: 'Gagal menyimpan: $e',
+        ),
       );
     }
   }
@@ -193,8 +205,6 @@ final idPeminjaman = peminjamanRes['id_peminjaman'];
       );
     }
 
-    final screenWidth = MediaQuery.of(context).size.width;
-
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
@@ -204,129 +214,132 @@ final idPeminjaman = peminjamanRes['id_peminjaman'];
           maxHeight: MediaQuery.of(context).size.height * 0.85,
         ),
         padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header
-            const Center(
-              child: Text(
-                'Tambah Peminjaman Baru',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-              ),
-            ),
-            const SizedBox(height: 28),
-
-            // Bagian 1: Peminjam
-            _buildSectionLabel('Peminjam'),
-            DropdownButtonFormField<int?>(
-              value: selectedPenggunaId,
-              hint: const Text('Pilih nama peminjam'),
-              isExpanded: true,
-              decoration: _inputStyle(),
-              items: daftarPengguna.map((p) {
-                return DropdownMenuItem<int>(
-                  value: p['id_pengguna'],
-                  child: Text(p['nama'] ?? '-'),
-                );
-              }).toList(),
-              onChanged: (val) => setState(() => selectedPenggunaId = val),
-            ),
-            const SizedBox(height: 24),
-
-            // Bagian 2: Daftar Alat
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _buildSectionLabel('Alat yang Dipinjam'),
-                if (selectedItems.length < 5)
-                  TextButton.icon(
-                    onPressed: _addItem,
-                    icon: const Icon(Icons.add_circle_outline, size: 20, color: primaryOrange),
-                    label: const Text('Tambah alat', style: TextStyle(color: primaryOrange)),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 8),
-
-            if (selectedItems.isEmpty)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 20),
-                  child: Text(
-                    'Belum ada alat yang dipilih',
-                    style: TextStyle(color: Colors.grey, fontSize: 15),
-                  ),
-                ),
+        child: isSubmitting
+            ? SizedBox(
+                height: 200,
+                child: Center(child: CircularProgressIndicator(color: primaryOrange)),
               )
-            else
-              Flexible(
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: selectedItems.length,
-                  itemBuilder: (context, index) {
-                    final item = selectedItems[index];
-                    return _buildAlatItem(index, item, screenWidth);
-                  },
+            : _buildForm(context),
+      ),
+    );
+  }
+
+  Widget _buildForm(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    return SingleChildScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Center(
+            child: Text(
+              'Tambah Peminjaman Baru',
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            ),
+          ),
+          const SizedBox(height: 28),
+          // Peminjam
+          _buildSectionLabel('Peminjam'),
+          DropdownButtonFormField<int?>(
+            value: selectedPenggunaId,
+            hint: const Text('Pilih nama peminjam'),
+            isExpanded: true,
+            decoration: _inputStyle(),
+            items: daftarPengguna.map((p) {
+              return DropdownMenuItem<int>(
+                value: p['id_pengguna'],
+                child: Text(p['nama'] ?? '-'),
+              );
+            }).toList(),
+            onChanged: (val) => setState(() => selectedPenggunaId = val),
+          ),
+          const SizedBox(height: 24),
+
+          // Daftar Alat
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildSectionLabel('Alat yang Dipinjam'),
+              if (selectedItems.length < 5)
+                TextButton.icon(
+                  onPressed: _addItem,
+                  icon: const Icon(Icons.add_circle_outline, size: 20, color: primaryOrange),
+                  label: const Text('Tambah alat', style: TextStyle(color: primaryOrange)),
+                ),
+            ],
+          ),
+          if (selectedItems.isEmpty)
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 20),
+                child: Text(
+                  'Belum ada alat yang dipilih',
+                  style: TextStyle(color: Colors.grey, fontSize: 15),
                 ),
               ),
-
-            const SizedBox(height: 24),
-
-            // Bagian 3: Tanggal
-            _buildSectionLabel('Periode Pinjam'),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildDateField(
-                    label: 'Pinjam',
-                    value: tanggalPinjam,
-                    onTap: () => _selectDate(true),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildDateField(
-                    label: 'Kembali',
-                    value: tanggalKembali,
-                    onTap: () => _selectDate(false),
-                  ),
-                ),
-              ],
+            )
+          else
+            Column(
+              children: List.generate(
+                selectedItems.length,
+                (index) => _buildAlatItem(index, selectedItems[index], screenWidth),
+              ),
             ),
 
-            const SizedBox(height: 32),
+          const SizedBox(height: 24),
 
-            // Tombol Aksi
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                OutlinedButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: primaryOrange, width: 1.5),
-                    foregroundColor: primaryOrange,
-                    minimumSize: const Size(120, 48),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  child: const Text('Batal'),
+          // Tanggal
+          _buildSectionLabel('Periode Pinjam'),
+          Row(
+            children: [
+              Expanded(
+                child: _buildDateField(
+                  label: 'Pinjam',
+                  value: tanggalPinjam,
+                  onTap: () => _selectDate(true),
                 ),
-                const SizedBox(width: 20),
-                ElevatedButton(
-                  onPressed: _savePeminjaman,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: primaryOrange,
-                    foregroundColor: Colors.white,
-                    minimumSize: const Size(140, 48),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  child: const Text('Simpan Peminjaman'),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildDateField(
+                  label: 'Kembali',
+                  value: tanggalKembali,
+                  onTap: () => _selectDate(false),
                 ),
-              ],
-            ),
-          ],
-        ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 32),
+
+          // Tombol Aksi
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              OutlinedButton(
+                onPressed: () => Navigator.pop(context),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: primaryOrange, width: 1.5),
+                  foregroundColor: primaryOrange,
+                  minimumSize: const Size(120, 48),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                child: const Text('Batal'),
+              ),
+              const SizedBox(width: 20),
+              ElevatedButton(
+                onPressed: _savePeminjaman,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: primaryOrange,
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size(140, 48),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                child: const Text('Simpan Peminjaman'),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

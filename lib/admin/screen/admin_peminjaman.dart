@@ -89,21 +89,15 @@ class _PeminjamanScreenState extends State<PeminjamanScreen> {
   }
 
   void _showAddPeminjamanDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => TambahPeminjamanDialog(
-        onSuccess: () {
-          _loadPeminjaman(); // refresh otomatis setelah tambah
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Peminjaman berhasil ditambahkan'),
-              backgroundColor: Colors.green,
-            ),
-          );
-        },
-      ),
-    );
-  }
+  showDialog(
+    context: context,
+    builder: (context) => TambahPeminjamanDialog(
+      onSuccess: () {
+        _loadPeminjaman(); // tetap refresh data setelah tambah
+      },
+    ),
+  );
+}
 
   String _formatDate(String? dateStr) {
     if (dateStr == null || dateStr.isEmpty) return '-';

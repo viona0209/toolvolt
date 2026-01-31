@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import '../../overlay_message.dart' show OverlayMessage;
 import '../../services/supabase_alat_service.dart';
 
 class TambahAlatDialog extends StatefulWidget {
@@ -52,8 +53,10 @@ class _TambahAlatDialogState extends State<TambahAlatDialog> {
     } catch (e) {
       setState(() => isLoadingKategori = false);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal memuat kategori: $e')),
+        OverlayMessage.show(
+          context: context,
+          message: 'Gagal memuat kategori: $e',
+          backgroundColor: Colors.red,
         );
       }
     }
@@ -85,8 +88,10 @@ class _TambahAlatDialogState extends State<TambahAlatDialog> {
         tersedia < 0 ||
         tersedia > total ||
         selectedKategori == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Lengkapi semua data dengan benar')),
+      OverlayMessage.show(
+        context: context,
+        message: 'Lengkapi semua data dengan benar',
+        backgroundColor: Colors.red,
       );
       return;
     }
@@ -111,15 +116,19 @@ class _TambahAlatDialogState extends State<TambahAlatDialog> {
       );
 
       if (success && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Alat berhasil ditambahkan!')),
-        );
-        widget.onSuccess();
-      }
+  Navigator.pop(context); // tutup dialog dulu
+  OverlayMessage.show(
+    context: context,
+    message: 'Alat berhasil ditambahkan!',
+  );
+  widget.onSuccess(); // baru reload data
+}
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal menambah alat: $e')),
+        OverlayMessage.show(
+          context: context,
+          message: 'Gagal menambah alat: $e',
+          backgroundColor: Colors.red,
         );
       }
     }

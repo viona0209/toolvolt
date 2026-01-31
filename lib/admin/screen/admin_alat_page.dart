@@ -32,29 +32,29 @@ class _AdminAlatScreenState extends State<AdminAlatScreen> {
   }
 
   Future<void> _loadData() async {
-  setState(() => isLoading = true);
+    setState(() => isLoading = true);
 
-  try {
-    final alatFuture = _service.fetchAllAlat();
-    final kategoriFuture = _service.fetchKategoriNames();
+    try {
+      final alatFuture = _service.fetchAllAlat();
+      final kategoriFuture = _service.fetchKategoriNames();
 
-    final alat = await alatFuture;
-    final kategori = await kategoriFuture;
+      final alat = await alatFuture;
+      final kategori = await kategoriFuture;
 
-    setState(() {
-      alatList = alat;
-      kategoriOptions = ['Semua', ...kategori];
-      isLoading = false;
-    });
-  } catch (e) {
-    setState(() => isLoading = false);
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal memuat data: $e')),
-      );
+      setState(() {
+        alatList = alat;
+        kategoriOptions = ['Semua', ...kategori];
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() => isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Gagal memuat data: $e')));
+      }
     }
   }
-}
 
   void _showAddAlatDialog() {
     showDialog(
@@ -62,8 +62,7 @@ class _AdminAlatScreenState extends State<AdminAlatScreen> {
       barrierDismissible: false,
       builder: (context) => TambahAlatDialog(
         onSuccess: () {
-          Navigator.pop(context);
-          _loadData();
+          _loadData(); // reload list setelah berhasil tambah alat
         },
       ),
     );
@@ -100,14 +99,21 @@ class _AdminAlatScreenState extends State<AdminAlatScreen> {
                           hintText: 'Cari',
                           filled: true,
                           fillColor: Colors.white,
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 12,
+                          ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(14),
-                            borderSide: const BorderSide(color: Color(0xFFD8D8D8)),
+                            borderSide: const BorderSide(
+                              color: Color(0xFFD8D8D8),
+                            ),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(14),
-                            borderSide: const BorderSide(color: Color(0xFFBDBDBD)),
+                            borderSide: const BorderSide(
+                              color: Color(0xFFBDBDBD),
+                            ),
                           ),
                         ),
                       ),
@@ -118,8 +124,11 @@ class _AdminAlatScreenState extends State<AdminAlatScreen> {
                     height: 44,
                     child: PopupMenuButton<String>(
                       offset: const Offset(0, 46),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      onSelected: (value) => setState(() => selectedKategori = value),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      onSelected: (value) =>
+                          setState(() => selectedKategori = value),
                       itemBuilder: (context) => kategoriOptions
                           .map((k) => PopupMenuItem(value: k, child: Text(k)))
                           .toList(),
@@ -139,9 +148,15 @@ class _AdminAlatScreenState extends State<AdminAlatScreen> {
                         ),
                         child: Row(
                           children: [
-                            Text(selectedKategori, style: const TextStyle(color: Colors.black87)),
+                            Text(
+                              selectedKategori,
+                              style: const TextStyle(color: Colors.black87),
+                            ),
                             const SizedBox(width: 6),
-                            const Icon(Icons.keyboard_arrow_down, color: Colors.grey),
+                            const Icon(
+                              Icons.keyboard_arrow_down,
+                              color: Colors.grey,
+                            ),
                           ],
                         ),
                       ),
@@ -157,31 +172,33 @@ class _AdminAlatScreenState extends State<AdminAlatScreen> {
               child: isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : alatList.isEmpty
-                      ? const Center(child: Text('Belum ada data alat'))
-                      : RefreshIndicator(
-                          onRefresh: _loadData,
-                          child: ListView(
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
-                            children: alatList
-                                .where((a) =>
-                                    selectedKategori == 'Semua' ||
-                                    a['kategori'] == selectedKategori)
-                                .map(
-                                  (alat) => AlatCard(
-                                    idAlat: alat['id'],
-                                    nama: alat['nama'],
-                                    kategori: alat['kategori'],
-                                    kondisi: alat['kondisi'],
-                                    total: alat['total'],
-                                    tersedia: alat['tersedia'],
-                                    dipinjam: alat['dipinjam'],
-                                    imagePath: alat['image'],
-                                    onRefresh: _loadData,
-                                  ),
-                                )
-                                .toList(),
-                          ),
-                        ),
+                  ? const Center(child: Text('Belum ada data alat'))
+                  : RefreshIndicator(
+                      onRefresh: _loadData,
+                      child: ListView(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        children: alatList
+                            .where(
+                              (a) =>
+                                  selectedKategori == 'Semua' ||
+                                  a['kategori'] == selectedKategori,
+                            )
+                            .map(
+                              (alat) => AlatCard(
+                                idAlat: alat['id'],
+                                nama: alat['nama'],
+                                kategori: alat['kategori'],
+                                kondisi: alat['kondisi'],
+                                total: alat['total'],
+                                tersedia: alat['tersedia'],
+                                dipinjam: alat['dipinjam'],
+                                imagePath: alat['image'],
+                                onRefresh: _loadData,
+                              ),
+                            )
+                            .toList(),
+                      ),
+                    ),
             ),
           ],
         ),

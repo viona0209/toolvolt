@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:top_snackbar_flutter/custom_snack_bar.dart';
+import 'package:top_snackbar_flutter/top_snack_bar.dart';
 
 class PengembalianCard extends StatefulWidget {
   final String id;
@@ -7,10 +10,8 @@ class PengembalianCard extends StatefulWidget {
   final String tglKembali;
   final String tglPengembalian;
   final String kondisi;
-  final String? denda;
   final String? catatan;
-  final List<Map<String, dynamic>>? items; // alat yang dikembalikan (opsional)
-  final VoidCallback? onRefresh; // refresh list setelah edit/hapus
+  final VoidCallback? onRefresh;
 
   const PengembalianCard({
     super.key,
@@ -20,9 +21,7 @@ class PengembalianCard extends StatefulWidget {
     required this.tglKembali,
     required this.tglPengembalian,
     required this.kondisi,
-    this.denda,
     this.catatan,
-    this.items,
     this.onRefresh,
   });
 
@@ -32,6 +31,32 @@ class PengembalianCard extends StatefulWidget {
 
 class _PengembalianCardState extends State<PengembalianCard> {
   bool _isExpanded = false;
+  int? totalDenda;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDendaFromSupabase();
+  }
+
+  // ================================
+  //   FIX: Tambah mounted check
+  // ================================
+  Future<void> _loadDendaFromSupabase() async {
+    final supabase = Supabase.instance.client;
+
+    final data = await supabase
+        .from('pengembalian')
+        .select('total_denda')
+        .eq('id_pengembalian', widget.id)
+        .maybeSingle();
+
+    if (!mounted) return;
+
+    setState(() {
+      totalDenda = (data?['total_denda'] as num?)?.toInt() ?? 0;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,46 +68,51 @@ class _PengembalianCardState extends State<PengembalianCard> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFD8D8D8), width: 1),
+        border: Border.all(color: Color(0xFFD8D8D8), width: 1),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.10),
             blurRadius: 6,
             spreadRadius: 1,
-            offset: const Offset(0, 3),
+            offset: Offset(0, 3),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // ================= HEADER =================
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 "ID : ${widget.id}",
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFBE4A31),
+                      color: Color(0xFFBE4A31),
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: const Text(
+                    child: Text(
                       "Kembalikan",
-                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
                     ),
                   ),
-                  const SizedBox(width: 6),
+                  SizedBox(width: 6),
                   PopupMenuButton<String>(
-                    icon: const Icon(Icons.more_vert, size: 24),
-                    offset: const Offset(0, 40),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    color: Colors.white,
-                    elevation: 6,
+                    icon: Icon(Icons.more_vert, size: 24),
+                    offset: Offset(0, 40),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     onSelected: (value) {
                       if (value == 'edit') {
                         _showEditPengembalianDialog(context);
@@ -90,24 +120,28 @@ class _PengembalianCardState extends State<PengembalianCard> {
                         setState(() => _isExpanded = !_isExpanded);
                       }
                     },
-                    itemBuilder: (context) => <PopupMenuEntry<String>>[
-                      const PopupMenuItem<String>(
+                    itemBuilder: (context) => [
+                      PopupMenuItem(
                         value: 'edit',
                         child: Row(
                           children: [
                             Icon(Icons.edit, color: primaryOrange, size: 20),
                             SizedBox(width: 12),
-                            Text('Edit', style: TextStyle(fontSize: 14)),
+                            Text('Edit'),
                           ],
                         ),
                       ),
-                      const PopupMenuItem<String>(
+                      PopupMenuItem(
                         value: 'detail',
                         child: Row(
                           children: [
-                            Icon(Icons.visibility, color: Colors.blueGrey, size: 20),
+                            Icon(
+                              Icons.visibility,
+                              color: Colors.blueGrey,
+                              size: 20,
+                            ),
                             SizedBox(width: 12),
-                            Text('Detail', style: TextStyle(fontSize: 14)),
+                            Text('Detail'),
                           ],
                         ),
                       ),
@@ -117,176 +151,258 @@ class _PengembalianCardState extends State<PengembalianCard> {
               ),
             ],
           ),
-          const SizedBox(height: 10),
+
+          SizedBox(height: 10),
+
           Text(
             widget.nama,
-            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: 4),
           Text(
             "Pinjam : ${widget.tglPinjam}",
-            style: const TextStyle(color: Colors.black54, fontSize: 13),
+            style: TextStyle(color: Colors.black54, fontSize: 13),
           ),
+
+          // EXPANDED DETAIL
           AnimatedCrossFade(
-            firstChild: const SizedBox.shrink(),
+            firstChild: SizedBox.shrink(),
             secondChild: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
+
                 Row(
                   children: [
-                    const Icon(Icons.calendar_today, size: 16, color: Colors.black54),
-                    const SizedBox(width: 6),
-                    Text("Kembali : ${widget.tglKembali}", style: const TextStyle(color: Colors.black54)),
+                    Icon(Icons.calendar_today, size: 16, color: Colors.black54),
+                    SizedBox(width: 6),
+                    Text(
+                      "Kembali : ${widget.tglKembali}",
+                      style: TextStyle(color: Colors.black54),
+                    ),
                   ],
                 ),
-                const SizedBox(height: 8),
+
+                SizedBox(height: 8),
+
                 Row(
                   children: [
-                    const Icon(Icons.calendar_month, size: 16, color: Colors.green),
-                    const SizedBox(width: 6),
-                    Text("Dikembalikan : ${widget.tglPengembalian}", style: const TextStyle(color: Colors.green)),
+                    Icon(Icons.calendar_month, size: 16, color: Colors.green),
+                    SizedBox(width: 6),
+                    Text(
+                      "Dikembalikan : ${widget.tglPengembalian}",
+                      style: TextStyle(color: Colors.green),
+                    ),
                   ],
                 ),
-                const SizedBox(height: 8),
+
+                SizedBox(height: 8),
+
                 Row(
                   children: [
-                    const Icon(Icons.warning_amber_rounded, size: 16, color: Colors.red),
-                    const SizedBox(width: 6),
+                    Icon(
+                      Icons.warning_amber_rounded,
+                      size: 16,
+                      color: Colors.red,
+                    ),
+                    SizedBox(width: 6),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.red.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
                         "Kondisi: ${widget.kondisi}",
-                        style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 12),
+                        style: TextStyle(
+                          color: Colors.red,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ],
                 ),
+
                 if (widget.catatan != null && widget.catatan!.isNotEmpty) ...[
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8),
                   Row(
                     children: [
-                      const Icon(Icons.note, size: 16, color: Colors.blueGrey),
-                      const SizedBox(width: 6),
+                      Icon(Icons.note, size: 16, color: Colors.blueGrey),
+                      SizedBox(width: 6),
                       Expanded(
                         child: Text(
                           "Catatan: ${widget.catatan}",
-                          style: const TextStyle(color: Colors.blueGrey),
+                          style: TextStyle(color: Colors.blueGrey),
                         ),
                       ),
                     ],
                   ),
                 ],
-                const SizedBox(height: 8),
+
+                SizedBox(height: 8),
+
+                // ===================== RINCIAN DENDA =====================
                 Row(
                   children: [
-                    const Icon(Icons.monetization_on_outlined, size: 16, color: Colors.red),
-                    const SizedBox(width: 6),
+                    Icon(
+                      Icons.monetization_on_outlined,
+                      size: 16,
+                      color: Colors.red,
+                    ),
+                    SizedBox(width: 6),
                     Text(
-                      "Rincian denda : ${widget.denda ?? 'Tidak ada denda'}",
-                      style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                      "Rincian denda : ${totalDenda ?? 'Menghitung...'}",
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ],
                 ),
               ],
             ),
-            crossFadeState: _isExpanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
-            duration: const Duration(milliseconds: 300),
+            crossFadeState: _isExpanded
+                ? CrossFadeState.showSecond
+                : CrossFadeState.showFirst,
+            duration: Duration(milliseconds: 300),
           ),
         ],
       ),
     );
   }
 
+  // =======================================================
+  //                   DIALOG EDIT
+  // =======================================================
   void _showEditPengembalianDialog(BuildContext context) {
     const primaryOrange = Color(0xFFFF7A00);
 
     showDialog(
       context: context,
       builder: (dialogContext) {
-        final tglKembaliController = TextEditingController(text: widget.tglKembali);
+        // =============== FIX FORMAT DD/MM/YYYY -> ISO ==================
+        DateTime tglISO;
+
+        try {
+          tglISO = DateTime.parse(widget.tglPengembalian);
+        } catch (_) {
+          final p = widget.tglPengembalian.split('/');
+          tglISO = DateTime(int.parse(p[2]), int.parse(p[1]), int.parse(p[0]));
+        }
+
+        final tglController = TextEditingController(text: _formatIndo(tglISO));
+
         String? selectedKondisi = widget.kondisi;
 
         return Dialog(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
-            side: const BorderSide(color: primaryOrange, width: 2),
+            side: BorderSide(color: primaryOrange, width: 2),
           ),
           child: Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Center(
-                  child: Text(
-                    'Edit Pengembalian',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
-                  ),
+                const Text(
+                  'Edit Pengembalian',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
                 ),
+
                 const SizedBox(height: 24),
-                _buildLabel('Tanggal dikembalikan'),
+
                 TextField(
-                  controller: tglKembaliController,
-                  decoration: _inputDecoration().copyWith(
-                    suffixIcon: const Icon(Icons.calendar_today, color: primaryOrange),
-                  ),
+                  controller: tglController,
                   readOnly: true,
-                  onTap: () {
-                    // TODO: Implement showDatePicker
+                  decoration: _inputDecoration().copyWith(
+                    suffixIcon: Icon(
+                      Icons.calendar_today,
+                      color: primaryOrange,
+                    ),
+                  ),
+                  onTap: () async {
+                    final picked = await showDatePicker(
+                      context: dialogContext,
+                      initialDate: tglISO,
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime(2100),
+                    );
+
+                    if (picked != null) {
+                      tglISO = picked;
+                      tglController.text = _formatIndo(picked);
+                    }
                   },
                 ),
+
                 const SizedBox(height: 16),
-                _buildLabel('Kondisi alat'),
+
                 DropdownButtonFormField<String?>(
                   value: selectedKondisi,
-                  isExpanded: true,
                   decoration: _inputDecoration(),
                   items: const [
                     DropdownMenuItem(value: "Baik", child: Text("Baik")),
-                    DropdownMenuItem(value: "Rusak Ringan", child: Text("Rusak Ringan")),
-                    DropdownMenuItem(value: "Rusak Berat", child: Text("Rusak Berat")),
+                    DropdownMenuItem(
+                      value: "Rusak Ringan",
+                      child: Text("Rusak Ringan"),
+                    ),
+                    DropdownMenuItem(
+                      value: "Rusak Sedang",
+                      child: Text("Rusak Sedang"),
+                    ),
+                    DropdownMenuItem(
+                      value: "Rusak Berat",
+                      child: Text("Rusak Berat"),
+                    ),
                     DropdownMenuItem(value: "Hilang", child: Text("Hilang")),
                   ],
-                  onChanged: (val) => setState(() => selectedKondisi = val),
+                  onChanged: (v) => selectedKondisi = v,
                 ),
+
                 const SizedBox(height: 32),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    OutlinedButton(
-                      onPressed: () => Navigator.pop(dialogContext),
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: primaryOrange, width: 1.5),
-                        foregroundColor: primaryOrange,
-                        minimumSize: const Size(110, 46),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                      child: const Text('Batal'),
-                    ),
-                    const SizedBox(width: 16),
-                    ElevatedButton(
-                      onPressed: () {
-                        // TODO: Simpan ke Supabase
-                        Navigator.pop(dialogContext);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Perubahan berhasil disimpan')),
+
+                ElevatedButton(
+                  onPressed: () async {
+                    try {
+                      await Supabase.instance.client
+                          .from('pengembalian')
+                          .update({
+                            "tanggal_pengembalian": tglISO.toIso8601String(),
+                            "kondisi_setelah": selectedKondisi,
+                          })
+                          .eq('id_pengembalian', widget.id);
+
+                      Navigator.pop(dialogContext);
+
+                      if (mounted) {
+                        showTopSnackBar(
+                          Overlay.of(context),
+                          const CustomSnackBar.success(
+                            message: "Pengembalian berhasil diperbarui!",
+                          ),
                         );
-                        widget.onRefresh?.call(); // refresh list jika ada
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: primaryOrange,
-                        foregroundColor: Colors.white,
-                        minimumSize: const Size(130, 46),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                      child: const Text('Edit'),
-                    ),
-                  ],
+                      }
+
+                      widget.onRefresh?.call();
+                      _loadDendaFromSupabase();
+                    } catch (e) {
+                      print("ERROR edit pengembalian: $e");
+                      if (mounted) {
+                        showTopSnackBar(
+                          Overlay.of(context),
+                          CustomSnackBar.error(message: "Gagal mengedit: $e"),
+                        );
+                      }
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primaryOrange,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: const Text("Edit"),
                 ),
               ],
             ),
@@ -296,23 +412,21 @@ class _PengembalianCardState extends State<PengembalianCard> {
     );
   }
 
-  Widget _buildLabel(String text) => Padding(
-        padding: const EdgeInsets.only(bottom: 6),
-        child: Text(
-          text,
-          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-        ),
-      );
+  String _formatIndo(DateTime date) {
+    return "${date.day.toString().padLeft(2, '0')}/"
+        "${date.month.toString().padLeft(2, '0')}/"
+        "${date.year}";
+  }
 
   InputDecoration _inputDecoration() => InputDecoration(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFFF7A00)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFFF7A00), width: 2),
-        ),
-      );
+    contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: BorderSide(color: Color(0xFFFF7A00)),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: BorderSide(color: Color(0xFFFF7A00), width: 2),
+    ),
+  );
 }

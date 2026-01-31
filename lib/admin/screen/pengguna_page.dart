@@ -39,13 +39,13 @@ class _PenggunaScreenState extends State<PenggunaScreen> {
 
     final totalPengguna = penggunaList.length;
 
-    final totalPetugas = penggunaList.where(
-      (e) => e['role'] == 'petugas' || e['role'] == 'admin'
-    ).length;
+    final totalPetugas = penggunaList
+        .where((e) => e['role'] == 'petugas' || e['role'] == 'admin')
+        .length;
 
-    final totalPeminjam = penggunaList.where(
-      (e) => e['role'] == 'peminjam'
-    ).length;
+    final totalPeminjam = penggunaList
+        .where((e) => e['role'] == 'peminjam')
+        .length;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -62,17 +62,10 @@ class _PenggunaScreenState extends State<PenggunaScreen> {
 
                       // Back button
                       IconButton(
-                        icon: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.black, width: 2),
-                          ),
-                          child: const Icon(
-                            Icons.arrow_back,
-                            color: Colors.black,
-                            size: 20,
-                          ),
+                        icon: const Icon(
+                          Icons.arrow_back,
+                          size: 32,
+                          color: Colors.black,
                         ),
                         onPressed: () => Navigator.pop(context),
                       ),
@@ -107,7 +100,9 @@ class _PenggunaScreenState extends State<PenggunaScreen> {
                           const SizedBox(width: 12),
                           InkWell(
                             onTap: () async {
-                              final success = await showTambahPenggunaDialog(context);
+                              final success = await showTambahPenggunaDialog(
+                                context,
+                              );
                               if (success == true) loadData();
                             },
                             child: Container(
@@ -215,21 +210,23 @@ class _PenggunaScreenState extends State<PenggunaScreen> {
                                     name: item['nama'] ?? "-",
                                     role: item['role'] ?? "",
                                     onEdit: () async {
-                                      final success = await showEditPenggunaDialog(
-                                        context,
-                                        item['id_pengguna'],
-                                        item['nama'],
-                                        item['username'],
-                                        item['role'],
-                                      );
+                                      final success =
+                                          await showEditPenggunaDialog(
+                                            context,
+                                            item['id_pengguna'],
+                                            item['nama'],
+                                            item['username'],
+                                            item['role'],
+                                          );
                                       if (success == true) loadData();
                                     },
                                     onDelete: () async {
-                                      final success = await showHapusPenggunaDialog(
-                                        context,
-                                        item['id_pengguna'], // hapus uid_auth
-                                        item['nama'],
-                                      );
+                                      final success =
+                                          await showHapusPenggunaDialog(
+                                            context,
+                                            item['id_pengguna'], // hapus uid_auth
+                                            item['nama'],
+                                          );
                                       if (success == true) loadData();
                                     },
                                   ),

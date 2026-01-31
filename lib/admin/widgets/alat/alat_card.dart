@@ -44,6 +44,48 @@ class _AlatCardState extends State<AlatCard> {
     _loadKategoriOptions();
   }
 
+  void showTopMessage(BuildContext context, String message) {
+    final overlay = Overlay.of(context);
+    final overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        top: 50,
+        left: 16,
+        right: 16,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+            decoration: BoxDecoration(
+              color: const Color(0xFFEF6C01),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.3),
+                  blurRadius: 6,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Text(
+              message,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    overlay?.insert(overlayEntry);
+
+    Future.delayed(const Duration(seconds: 2), () {
+      overlayEntry.remove();
+    });
+  }
+
   Future<void> _loadKategoriOptions() async {
     try {
       final response = await supabase
@@ -51,17 +93,19 @@ class _AlatCardState extends State<AlatCard> {
           .select('id_kategori, nama_kategori')
           .order('nama_kategori');
 
+      if (!mounted) return; // ✅ tambahkan ini
       setState(() {
-        kategoriOptions = response.map((row) => row['nama_kategori'] as String).toList();
+        kategoriOptions = response
+            .map((row) => row['nama_kategori'] as String)
+            .toList();
         isLoadingKategori = false;
       });
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal memuat kategori: $e')),
-        );
-      }
+      if (!mounted) return; // ✅ tambahkan
       setState(() => isLoadingKategori = false);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Gagal memuat kategori: $e')));
     }
   }
 
@@ -96,13 +140,23 @@ class _AlatCardState extends State<AlatCard> {
                       ? Image.network(
                           widget.imagePath,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, color: Colors.grey, size: 30),
+                          errorBuilder: (_, __, ___) => const Icon(
+                            Icons.broken_image,
+                            color: Colors.grey,
+                            size: 30,
+                          ),
                           loadingBuilder: (context, child, loadingProgress) {
                             if (loadingProgress == null) return child;
-                            return const Center(child: CircularProgressIndicator(strokeWidth: 2));
+                            return const Center(
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            );
                           },
                         )
-                      : const Icon(Icons.image_not_supported, color: Colors.grey, size: 30),
+                      : const Icon(
+                          Icons.image_not_supported,
+                          color: Colors.grey,
+                          size: 30,
+                        ),
                 ),
               ),
               const SizedBox(width: 12),
@@ -110,10 +164,22 @@ class _AlatCardState extends State<AlatCard> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(widget.nama, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+                    Text(
+                      widget.nama,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                      ),
+                    ),
                     const SizedBox(height: 2),
-                    Text(widget.kategori, style: const TextStyle(color: Colors.grey, fontSize: 12)),
-                    const Padding(padding: EdgeInsets.symmetric(vertical: 6), child: Divider(thickness: 0.8)),
+                    Text(
+                      widget.kategori,
+                      style: const TextStyle(color: Colors.grey, fontSize: 12),
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 6),
+                      child: Divider(thickness: 0.8),
+                    ),
                     Row(
                       children: [
                         Expanded(child: Text('Kondisi : ${widget.kondisi}')),
@@ -127,7 +193,10 @@ class _AlatCardState extends State<AlatCard> {
                         Expanded(child: Text('Dipinjam : ${widget.dipinjam}')),
                       ],
                     ),
-                    const Padding(padding: EdgeInsets.only(top: 10), child: Divider(thickness: 0.8)),
+                    const Padding(
+                      padding: EdgeInsets.only(top: 10),
+                      child: Divider(thickness: 0.8),
+                    ),
                   ],
                 ),
               ),
@@ -183,8 +252,8 @@ class _AlatCardState extends State<AlatCard> {
           isLoadingKategori: isLoadingKategori,
           primaryOrange: const Color(0xFFFF8E01),
           onSuccess: () {
+            // ✅ hanya refresh daftar, jangan pop dialog
             widget.onRefresh?.call();
-            Navigator.pop(dialogContext);
           },
         );
       },
@@ -226,7 +295,9 @@ class _AlatCardState extends State<AlatCard> {
                       side: const BorderSide(color: primaryOrange, width: 1.5),
                       foregroundColor: primaryOrange,
                       minimumSize: const Size(120, 48),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                     child: const Text('Batal'),
                   ),
@@ -234,27 +305,33 @@ class _AlatCardState extends State<AlatCard> {
                   ElevatedButton(
                     onPressed: () async {
                       try {
-                        await supabase.from('alat').delete().eq('id_alat', widget.idAlat);
+                        await supabase
+                            .from('alat')
+                            .delete()
+                            .eq('id_alat', widget.idAlat);
+
                         if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Alat berhasil dihapus')),
-                          );
+                          // ✅ tampilkan pesan sukses di atas layar
+                          showTopMessage(context, 'Alat berhasil dihapus');
                           widget.onRefresh?.call();
                         }
                       } catch (e) {
                         if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Gagal menghapus: $e')),
-                          );
+                          // ✅ tampilkan pesan error di atas layar
+                          showTopMessage(context, 'Gagal menghapus: $e');
                         }
                       }
+
+                      // ✅ tutup dialog
                       Navigator.pop(dialogContext);
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: primaryOrange,
                       foregroundColor: Colors.white,
                       minimumSize: const Size(140, 48),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       elevation: 2,
                     ),
                     child: const Text('Hapus'),
@@ -307,8 +384,8 @@ class __EditAlatDialogState extends State<_EditAlatDialog> {
   late TextEditingController kondisiController;
 
   String? selectedKategori;
-  XFile? pickedFile;           // cross-platform (mobile & web)
-  Uint8List? webImageBytes;    // untuk preview & upload di web
+  XFile? pickedFile; // cross-platform (mobile & web)
+  Uint8List? webImageBytes; // untuk preview & upload di web
 
   final supabase = Supabase.instance.client;
 
@@ -316,13 +393,19 @@ class __EditAlatDialogState extends State<_EditAlatDialog> {
   void initState() {
     super.initState();
     nameController = TextEditingController(text: widget.initialNama);
-    totalController = TextEditingController(text: widget.initialTotal.toString());
-    tersediaController = TextEditingController(text: widget.initialTersedia.toString());
+    totalController = TextEditingController(
+      text: widget.initialTotal.toString(),
+    );
+    tersediaController = TextEditingController(
+      text: widget.initialTersedia.toString(),
+    );
     kondisiController = TextEditingController(text: widget.initialKondisi);
 
     selectedKategori = widget.kategoriOptions.contains(widget.initialKategori)
         ? widget.initialKategori
-        : (widget.kategoriOptions.isNotEmpty ? widget.kategoriOptions.first : null);
+        : (widget.kategoriOptions.isNotEmpty
+              ? widget.kategoriOptions.first
+              : null);
   }
 
   @override
@@ -332,6 +415,48 @@ class __EditAlatDialogState extends State<_EditAlatDialog> {
     tersediaController.dispose();
     kondisiController.dispose();
     super.dispose();
+  }
+
+  void showTopMessage(BuildContext context, String message) {
+    final overlay = Overlay.of(context);
+    final overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        top: 50,
+        left: 16,
+        right: 16,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+            decoration: BoxDecoration(
+              color: const Color(0xFFEF6C01),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.3),
+                  blurRadius: 6,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Text(
+              message,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    overlay?.insert(overlayEntry);
+
+    Future.delayed(const Duration(seconds: 2), () {
+      overlayEntry.remove();
+    });
   }
 
   Future<String?> _uploadNewImage() async {
@@ -344,27 +469,31 @@ class __EditAlatDialogState extends State<_EditAlatDialog> {
       if (kIsWeb) {
         // Web upload
         final bytes = await pickedFile!.readAsBytes();
-        await supabase.storage.from('alat-gambar').uploadBinary(
-          path,
-          bytes,
-          fileOptions: const FileOptions(contentType: 'image/jpeg'),
-        );
+        await supabase.storage
+            .from('alat-gambar')
+            .uploadBinary(
+              path,
+              bytes,
+              fileOptions: const FileOptions(contentType: 'image/jpeg'),
+            );
       } else {
         // Mobile upload
-        await supabase.storage.from('alat-gambar').upload(
-          path,
-          File(pickedFile!.path),
-          fileOptions: const FileOptions(contentType: 'image/jpeg'),
-        );
+        await supabase.storage
+            .from('alat-gambar')
+            .upload(
+              path,
+              File(pickedFile!.path),
+              fileOptions: const FileOptions(contentType: 'image/jpeg'),
+            );
       }
 
       return supabase.storage.from('alat-gambar').getPublicUrl(path);
     } catch (e, stack) {
       debugPrint('Upload gambar error: $e\n$stack');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal upload gambar: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Gagal upload gambar: $e')));
       }
       return null;
     }
@@ -407,7 +536,10 @@ class __EditAlatDialogState extends State<_EditAlatDialog> {
               const SizedBox(height: 28),
 
               _buildLabel('Nama Alat'),
-              TextField(controller: nameController, decoration: _inputDecoration()),
+              TextField(
+                controller: nameController,
+                decoration: _inputDecoration(),
+              ),
               const SizedBox(height: 16),
 
               Row(
@@ -422,7 +554,10 @@ class __EditAlatDialogState extends State<_EditAlatDialog> {
                         if (widget.isLoadingKategori)
                           const Center(child: CircularProgressIndicator())
                         else if (widget.kategoriOptions.isEmpty)
-                          const Text('Tidak ada kategori tersedia', style: TextStyle(color: Colors.red))
+                          const Text(
+                            'Tidak ada kategori tersedia',
+                            style: TextStyle(color: Colors.red),
+                          )
                         else
                           DropdownButtonFormField<String>(
                             value: selectedKategori,
@@ -430,9 +565,15 @@ class __EditAlatDialogState extends State<_EditAlatDialog> {
                             isExpanded: true,
                             decoration: _inputDecoration(),
                             items: widget.kategoriOptions
-                                .map((kat) => DropdownMenuItem(value: kat, child: Text(kat)))
+                                .map(
+                                  (kat) => DropdownMenuItem(
+                                    value: kat,
+                                    child: Text(kat),
+                                  ),
+                                )
                                 .toList(),
-                            onChanged: (val) => setState(() => selectedKategori = val),
+                            onChanged: (val) =>
+                                setState(() => selectedKategori = val),
                           ),
                       ],
                     ),
@@ -463,7 +604,10 @@ class __EditAlatDialogState extends State<_EditAlatDialog> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildLabel('Kondisi'),
-                        TextField(controller: kondisiController, decoration: _inputDecoration()),
+                        TextField(
+                          controller: kondisiController,
+                          decoration: _inputDecoration(),
+                        ),
                       ],
                     ),
                   ),
@@ -489,7 +633,9 @@ class __EditAlatDialogState extends State<_EditAlatDialog> {
               GestureDetector(
                 onTap: () async {
                   final picker = ImagePicker();
-                  final img = await picker.pickImage(source: ImageSource.gallery);
+                  final img = await picker.pickImage(
+                    source: ImageSource.gallery,
+                  );
                   if (img != null) {
                     setState(() {
                       pickedFile = img;
@@ -518,7 +664,9 @@ class __EditAlatDialogState extends State<_EditAlatDialog> {
                       side: BorderSide(color: widget.primaryOrange, width: 1.5),
                       foregroundColor: widget.primaryOrange,
                       minimumSize: const Size(120, 48),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                     child: const Text('Batal'),
                   ),
@@ -526,17 +674,19 @@ class __EditAlatDialogState extends State<_EditAlatDialog> {
                   ElevatedButton(
                     onPressed: () async {
                       final namaBaru = nameController.text.trim();
-                      final totalBaru = int.tryParse(totalController.text) ?? widget.initialTotal;
-                      final tersediaBaru = int.tryParse(tersediaController.text) ?? widget.initialTersedia;
+                      final totalBaru =
+                          int.tryParse(totalController.text) ??
+                          widget.initialTotal;
+                      final tersediaBaru =
+                          int.tryParse(tersediaController.text) ??
+                          widget.initialTersedia;
 
                       if (namaBaru.isEmpty ||
                           selectedKategori == null ||
                           totalBaru < 0 ||
                           tersediaBaru < 0 ||
                           tersediaBaru > totalBaru) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Lengkapi data dengan benar')),
-                        );
+                        showTopMessage(context, 'Lengkapi data dengan benar');
                         return;
                       }
 
@@ -548,39 +698,54 @@ class __EditAlatDialogState extends State<_EditAlatDialog> {
                           if (newImageUrl == null) return;
                         }
 
-                        final idKategori = await _getKategoriId(selectedKategori!);
+                        final idKategori = await _getKategoriId(
+                          selectedKategori!,
+                        );
                         if (idKategori == null) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Kategori tidak ditemukan')),
-                          );
+                          showTopMessage(context, 'Kategori tidak ditemukan');
                           return;
                         }
 
-                        await supabase.from('alat').update({
-                          'nama_alat': namaBaru,
-                          'id_kategori': idKategori,
-                          'kondisi': kondisiController.text.trim().isEmpty ? 'Baik' : kondisiController.text.trim(),
-                          'jumlah_total': totalBaru,
-                          'jumlah_tersedia': tersediaBaru,
-                          'gambar_alat': newImageUrl,
-                        }).eq('id_alat', widget.idAlat);
+                        await supabase
+                            .from('alat')
+                            .update({
+                              'nama_alat': namaBaru,
+                              'id_kategori': idKategori,
+                              'kondisi': kondisiController.text.trim().isEmpty
+                                  ? 'Baik'
+                                  : kondisiController.text.trim(),
+                              'jumlah_total': totalBaru,
+                              'jumlah_tersedia': tersediaBaru,
+                              'gambar_alat': newImageUrl,
+                            })
+                            .eq('id_alat', widget.idAlat);
 
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Alat berhasil diperbarui')),
-                        );
+                        if (!mounted) return;
 
+                        // ✅ refresh parent
                         widget.onSuccess();
+
+                        // ✅ tutup dialog
+                        Navigator.pop(context);
+
+                        // ✅ tampilkan pesan sukses di atas layar
+                        showTopMessage(context, 'Alat berhasil diperbarui');
                       } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Gagal menyimpan perubahan: $e')),
-                        );
+                        if (mounted) {
+                          showTopMessage(
+                            context,
+                            'Gagal menyimpan perubahan: $e',
+                          );
+                        }
                       }
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: widget.primaryOrange,
                       foregroundColor: Colors.white,
                       minimumSize: const Size(140, 48),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       elevation: 2,
                     ),
                     child: const Text('Simpan'),
@@ -606,7 +771,11 @@ class __EditAlatDialogState extends State<_EditAlatDialog> {
                 return Image.memory(snapshot.data!, fit: BoxFit.cover);
               }
               if (snapshot.hasError) {
-                return const Icon(Icons.broken_image, size: 50, color: Colors.grey);
+                return const Icon(
+                  Icons.broken_image,
+                  size: 50,
+                  color: Colors.grey,
+                );
               }
             }
             return const Center(child: CircularProgressIndicator());
@@ -616,7 +785,8 @@ class __EditAlatDialogState extends State<_EditAlatDialog> {
         return Image.file(
           File(pickedFile!.path),
           fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 50, color: Colors.grey),
+          errorBuilder: (_, __, ___) =>
+              const Icon(Icons.broken_image, size: 50, color: Colors.grey),
         );
       }
     }
@@ -626,8 +796,11 @@ class __EditAlatDialogState extends State<_EditAlatDialog> {
         widget.initialImagePath,
         fit: BoxFit.cover,
         loadingBuilder: (context, child, loadingProgress) =>
-            loadingProgress == null ? child : const Center(child: CircularProgressIndicator()),
-        errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 50, color: Colors.grey),
+            loadingProgress == null
+            ? child
+            : const Center(child: CircularProgressIndicator()),
+        errorBuilder: (_, __, ___) =>
+            const Icon(Icons.broken_image, size: 50, color: Colors.grey),
       );
     }
 
@@ -644,22 +817,22 @@ class __EditAlatDialogState extends State<_EditAlatDialog> {
   }
 
   Widget _buildLabel(String text) => Padding(
-        padding: const EdgeInsets.only(bottom: 6),
-        child: Text(
-          text,
-          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-        ),
-      );
+    padding: const EdgeInsets.only(bottom: 6),
+    child: Text(
+      text,
+      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+    ),
+  );
 
   InputDecoration _inputDecoration() => InputDecoration(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Color(0xFFFF8E01)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Color(0xFFFF8E01), width: 2),
-        ),
-      );
+    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(14),
+      borderSide: const BorderSide(color: Color(0xFFFF8E01)),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(14),
+      borderSide: const BorderSide(color: Color(0xFFFF8E01), width: 2),
+    ),
+  );
 }

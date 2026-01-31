@@ -1,14 +1,98 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:top_snackbar_flutter/custom_snack_bar.dart';
+import 'package:top_snackbar_flutter/top_snack_bar.dart';
 
-class TambahPengembalianDialog extends StatelessWidget {
+class TambahPengembalianDialog extends StatefulWidget {
   final VoidCallback? onSuccess;
 
-  const TambahPengembalianDialog({
-    super.key,
-    this.onSuccess,
-  });
+  const TambahPengembalianDialog({super.key, this.onSuccess});
 
+  @override
+  State<TambahPengembalianDialog> createState() =>
+      _TambahPengembalianDialogState();
+}
+
+class _TambahPengembalianDialogState extends State<TambahPengembalianDialog> {
   static const primaryOrange = Color(0xFFFF7A00);
+
+  String? selectedPeminjaman;
+  String? selectedKondisi = 'Baik';
+
+  List<Map<String, dynamic>> listPeminjaman = [];
+
+  final catatanController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPeminjaman();
+  }
+
+  /// Ambil daftar peminjaman
+  Future<void> _loadPeminjaman() async {
+    final response = await Supabase.instance.client
+        .from('peminjaman')
+        .select('''
+          id_peminjaman,
+          tanggal_pinjam,
+          pengguna:pengguna(id_pengguna, nama)
+        ''')
+        .eq('status', 'dipinjam');
+
+    setState(() {
+      listPeminjaman = List<Map<String, dynamic>>.from(response);
+    });
+  }
+
+  /// Simpan pengembalian
+  Future<void> _submit() async {
+    if (selectedPeminjaman == null) {
+      showTopSnackBar(
+        Overlay.of(context),
+        const CustomSnackBar.error(
+          message: "Pilih peminjaman terlebih dahulu",
+        ),
+      );
+      return;
+    }
+
+    final int idPeminjaman = int.parse(selectedPeminjaman!);
+
+    try {
+      await Supabase.instance.client.from('pengembalian').insert({
+        'id_peminjaman': idPeminjaman,
+        'tanggal_pengembalian': DateTime.now().toIso8601String(),
+        'kondisi_setelah': selectedKondisi,
+        'catatan': catatanController.text,
+      });
+
+      // update status
+      await Supabase.instance.client
+          .from('peminjaman')
+          .update({'status': 'dikembalikan'})
+          .eq('id_peminjaman', idPeminjaman);
+
+      Navigator.pop(context);
+
+      showTopSnackBar(
+        Overlay.of(context),
+        const CustomSnackBar.success(
+          message: "Pengembalian berhasil ditambahkan",
+        ),
+      );
+
+      widget.onSuccess?.call();
+
+    } catch (e) {
+      showTopSnackBar(
+        Overlay.of(context),
+        CustomSnackBar.error(
+          message: "Gagal menambah pengembalian: $e",
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,148 +103,105 @@ class TambahPengembalianDialog extends StatelessWidget {
       ),
       child: Padding(
         padding: const EdgeInsets.all(20),
-        child: StatefulBuilder(
-          builder: (context, setState) {
-            String? selectedPeminjaman;
-            String? selectedKondisi = 'Baik';
-            final catatanController = TextEditingController();
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Center(
+                child: Text(
+                  'Tambah Pengembalian',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+                ),
+              ),
+              const SizedBox(height: 24),
 
-            return SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
+              /// PILIH PEMINJAMAN
+              _buildLabel('Pilih peminjaman'),
+              DropdownButtonFormField<String?>(
+                value: selectedPeminjaman,
+                isExpanded: true,
+                hint: const Text('Pilih ID / Nama peminjam'),
+                decoration: _inputDecoration(),
+                items: listPeminjaman.map((p) {
+                  final id = p['id_peminjaman'];
+                  final nama = p['pengguna']['nama'];
+                  final tgl = p['tanggal_pinjam'] ?? '-';
+
+                  return DropdownMenuItem(
+                    value: "$id",
+                    child: Text("$id - $nama (Pinjam: $tgl)"),
+                  );
+                }).toList(),
+                onChanged: (val) => setState(() => selectedPeminjaman = val),
+              ),
+
+              const SizedBox(height: 20),
+
+              /// KONDISI
+              _buildLabel('Kondisi alat setelah dikembalikan'),
+              DropdownButtonFormField<String?>(
+                value: selectedKondisi,
+                isExpanded: true,
+                decoration: _inputDecoration(),
+                items: const [
+                  DropdownMenuItem(value: 'Baik', child: Text('Baik')),
+                  DropdownMenuItem(
+                      value: 'Rusak Ringan', child: Text('Rusak Ringan')),
+                  DropdownMenuItem(
+                      value: 'Rusak Sedang', child: Text('Rusak Sedang')),
+                  DropdownMenuItem(
+                      value: 'Rusak Berat', child: Text('Rusak Berat')),
+                  DropdownMenuItem(value: 'Hilang', child: Text('Hilang')),
+                ],
+                onChanged: (val) => setState(() => selectedKondisi = val),
+              ),
+
+              const SizedBox(height: 16),
+
+              /// CATATAN
+              _buildLabel('Catatan (opsional)'),
+              TextField(
+                controller: catatanController,
+                maxLines: 3,
+                decoration: _inputDecoration(),
+              ),
+
+              const SizedBox(height: 30),
+
+              /// BUTTON
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Center(
-                    child: Text(
-                      'Tambah Pengembalian',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
+                  OutlinedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: primaryOrange, width: 1.5),
+                      foregroundColor: primaryOrange,
+                      minimumSize: const Size(110, 46),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
                     ),
+                    child: const Text('Batal'),
                   ),
-                  const SizedBox(height: 24),
-
-                  _buildLabel('Pilih peminjaman'),
-                  DropdownButtonFormField<String?>(
-                    value: selectedPeminjaman,
-                    isExpanded: true,
-                    hint: const Text('Pilih ID / Nama peminjam'),
-                    decoration: _inputDecoration(),
-                    items: const [
-                      DropdownMenuItem(value: '1 - Dewi Lestari', child: Text('1 - Dewi Lestari')),
-                      DropdownMenuItem(value: '2 - Ahmad Rizky', child: Text('2 - Ahmad Rizky')),
-                      DropdownMenuItem(value: '3 - Budi Santoso', child: Text('3 - Budi Santoso')),
-                    ],
-                    onChanged: (val) => setState(() => selectedPeminjaman = val),
-                  ),
-                  const SizedBox(height: 16),
-
-                  Row(
-                    children: [
-                      Expanded(
-                        flex: 3,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildLabel('Kondisi alat'),
-                            DropdownButtonFormField<String?>(
-                              value: selectedKondisi,
-                              isExpanded: true,
-                              decoration: _inputDecoration(),
-                              items: const [
-                                DropdownMenuItem(value: 'Baik', child: Text('Baik')),
-                                DropdownMenuItem(value: 'Rusak Ringan', child: Text('Rusak Ringan')),
-                                DropdownMenuItem(value: 'Rusak Berat', child: Text('Rusak Berat')),
-                                DropdownMenuItem(value: 'Hilang', child: Text('Hilang')),
-                              ],
-                              onChanged: (val) => setState(() => selectedKondisi = val),
-                            ),
-                          ],
-                        ),
+                  const SizedBox(width: 16),
+                  ElevatedButton(
+                    onPressed: _submit,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: primaryOrange,
+                      foregroundColor: Colors.white,
+                      minimumSize: const Size(130, 46),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        flex: 2,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildLabel('Kondisi'),
-                            Container(
-                              height: 56,
-                              alignment: Alignment.centerLeft,
-                              padding: const EdgeInsets.symmetric(horizontal: 14),
-                              decoration: BoxDecoration(
-                                border: Border.all(color: primaryOrange),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                selectedKondisi ?? '-',
-                                style: const TextStyle(fontSize: 16),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-
-                  _buildLabel('Catatan (opsional)'),
-                  TextField(
-                    controller: catatanController,
-                    maxLines: 3,
-                    decoration: _inputDecoration(),
-                  ),
-                  const SizedBox(height: 32),
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      OutlinedButton(
-                        onPressed: () => Navigator.pop(context),
-                        style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: primaryOrange, width: 1.5),
-                          foregroundColor: primaryOrange,
-                          minimumSize: const Size(110, 46),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
-                        child: const Text('Batal'),
-                      ),
-                      const SizedBox(width: 16),
-                      ElevatedButton(
-                        onPressed: () {
-                          if (selectedPeminjaman == null) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Pilih peminjaman terlebih dahulu')),
-                            );
-                            return;
-                          }
-
-                          // TODO: Nanti di sini tambahkan insert ke Supabase
-                          Navigator.pop(context);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Pengembalian berhasil ditambahkan'),
-                              backgroundColor: Colors.green,
-                            ),
-                          );
-                          onSuccess?.call(); // Refresh list di screen
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: primaryOrange,
-                          foregroundColor: Colors.white,
-                          minimumSize: const Size(130, 46),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
-                        child: const Text('Tambah'),
-                      ),
-                    ],
+                    ),
+                    child: const Text('Tambah'),
                   ),
                 ],
               ),
-            );
-          },
+            ],
+          ),
         ),
       ),
     );
