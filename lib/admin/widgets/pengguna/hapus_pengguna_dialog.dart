@@ -5,6 +5,7 @@ Future<bool?> showHapusPenggunaDialog(
   BuildContext context,
   int idPengguna,
   String nama,
+  {String? authId} // tambahkan parameter opsional
 ) {
   const primaryOrange = Color(0xFFFF7733);
 
@@ -30,6 +31,12 @@ Future<bool?> showHapusPenggunaDialog(
                 "Apakah kamu yakin ingin menghapus \"$nama\"?",
                 textAlign: TextAlign.center,
               ),
+              const SizedBox(height: 8),
+              Text(
+                "Akun auth juga akan dihapus permanen.",
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+              ),
               const SizedBox(height: 32),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -45,6 +52,7 @@ Future<bool?> showHapusPenggunaDialog(
 
                       final res = await service.hapusPengguna(
                         idPengguna: idPengguna,
+                        authId: authId, // kirim authId
                       );
 
                       if (res == null) {
@@ -55,6 +63,10 @@ Future<bool?> showHapusPenggunaDialog(
                         );
                       }
                     },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                    ),
                     child: const Text("Hapus"),
                   ),
                 ],

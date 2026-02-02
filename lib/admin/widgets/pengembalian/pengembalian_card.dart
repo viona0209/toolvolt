@@ -39,9 +39,6 @@ class _PengembalianCardState extends State<PengembalianCard> {
     _loadDendaFromSupabase();
   }
 
-  // ================================
-  //   FIX: Tambah mounted check
-  // ================================
   Future<void> _loadDendaFromSupabase() async {
     final supabase = Supabase.instance.client;
 

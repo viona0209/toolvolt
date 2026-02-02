@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:toolvolt/peminjam/service/peminjam_service.dart';
+import '../../login_screen.dart';
 import '../widgets/peminjam_bottom_nav.dart';
 import 'peminjam_list_alat_page.dart';
 import 'peminjam_peminjaman_page.dart';
@@ -13,13 +16,99 @@ class PeminjamDashboardPage extends StatefulWidget {
 
 class _PeminjamDashboardPageState extends State<PeminjamDashboardPage> {
   int _currentIndex = 2;
-
   static const Color primaryOrange = Color(0xFFFF8E01);
+
+  final service = PeminjamService();
+
+  int totalAlat = 0;
+  int peminjamanAktif = 0;
+  int totalRiwayat = 0;
+  List<Map<String, dynamic>> riwayat = [];
+
+  int? idPeminjam;
+
+  @override
+  void initState() {
+    super.initState();
+    loadPeminjamIdAndData();
+  }
+
+  // Ambil idPeminjam dari tabel 'pengguna'
+  Future<void> loadPeminjamIdAndData() async {
+    final user = Supabase.instance.client.auth.currentUser;
+
+    if (user == null) {
+      debugPrint("⚠ Tidak ada user yang login!");
+      return;
+    }
+
+    final authId = user.id; // UUID dari Supabase Auth
+
+    final response = await Supabase.instance.client
+        .from('pengguna')
+        .select('id_pengguna')
+        .eq('auth_id', authId)
+        .maybeSingle();
+
+    if (response == null || response['id_pengguna'] == null) {
+      debugPrint(
+        "⚠ Gagal mengambil id peminjam: pastikan user ada di tabel 'pengguna'",
+      );
+      return;
+    }
+
+    idPeminjam = response['id_pengguna'] as int;
+
+    loadData();
+  }
+
+  // Load semua data dashboard
+  Future<void> loadData() async {
+    if (idPeminjam == null) return;
+
+    final alat = await service.getTotalAlatTersedia();
+    final aktif = await service.getPeminjamanAktif(idPeminjam!);
+    final histori = await service.getTotalRiwayat(idPeminjam!);
+    final listRiwayat = await service.getRiwayat(idPeminjam!);
+
+    setState(() {
+      totalAlat = alat;
+      peminjamanAktif = aktif;
+      totalRiwayat = histori;
+      riwayat = listRiwayat;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        title: const Text(
+          'Dashboard Peminjam',
+          style: TextStyle(color: Colors.black),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout, color: Colors.red),
+            onPressed: () async {
+              // Logout Supabase
+              await Supabase.instance.client.auth.signOut();
+
+              // Langsung navigasi ke LoginScreen tanpa named route
+              if (!mounted) return;
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const LoginScreen(),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(20, 24, 20, 40),
@@ -28,272 +117,48 @@ class _PeminjamDashboardPageState extends State<PeminjamDashboardPage> {
             children: [
               const Text(
                 'Hallo Peminjam',
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.2,
-                ),
+                style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 2),
               const Text(
                 'Selamat Datang !',
                 style: TextStyle(fontSize: 15, color: Colors.black54),
               ),
-
               const SizedBox(height: 28),
-
               IntrinsicHeight(
                 child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Expanded(
                       flex: 5,
-                      child: Container(
-                        padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: primaryOrange, width: 1.8),
-                          boxShadow: [
-                            BoxShadow(
-                              color: primaryOrange.withOpacity(0.07),
-                              blurRadius: 12,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.inventory_2_rounded,
-                              size: 80,
-                              color: primaryOrange,
-                            ),
-                            const SizedBox(height: 24),
-                            const Text(
-                              'Alat Tersedia',
-                              style: TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              '14',
-                              style: TextStyle(
-                                fontSize: 52,
-                                fontWeight: FontWeight.bold,
-                                color: primaryOrange,
-                                height: 1.0,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            const Text(
-                              'Semua Peralatan',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: Colors.black54,
-                              ),
-                            ),
-                          ],
-                        ),
+                      child: _buildCard(
+                        icon: Icons.inventory_2_rounded,
+                        title: "Alat Tersedia",
+                        value: totalAlat.toString(),
+                        subtitle: "Semua Peralatan",
                       ),
                     ),
-
                     const SizedBox(width: 16),
-
                     Expanded(
                       flex: 4,
                       child: Column(
                         children: [
                           Expanded(
-                            child: Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(
-                                  color: primaryOrange,
-                                  width: 1.8,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: primaryOrange.withOpacity(0.07),
-                                    blurRadius: 12,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.all(10),
-                                        decoration: BoxDecoration(
-                                          color: primaryOrange.withOpacity(
-                                            0.12,
-                                          ),
-                                          borderRadius: BorderRadius.circular(
-                                            12,
-                                          ),
-                                        ),
-                                        child: Icon(
-                                          Icons.assignment_turned_in_outlined,
-                                          size: 32,
-                                          color: primaryOrange,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 14),
-                                      Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: const [
-                                          Text(
-                                            'Pinjam',
-                                            style: TextStyle(
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.w500,
-                                              color: Colors.black87,
-                                            ),
-                                          ),
-                                          Text(
-                                            'Aktif',
-                                            style: TextStyle(
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.w500,
-                                              color: Colors.black87,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-
-                                  const Spacer(),
-
-                                  Column(
-                                    children: [
-                                      Text(
-                                        '1',
-                                        style: TextStyle(
-                                          fontSize: 42,
-                                          fontWeight: FontWeight.bold,
-                                          color: primaryOrange,
-                                          height: 1.0,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                      const SizedBox(height: 6),
-                                      const Text(
-                                        'Sedang dipinjam',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.black54,
-                                          fontWeight: FontWeight.w400,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ],
-                                  ),
-
-                                  const SizedBox(height: 16),
-                                ],
-                              ),
+                            child: _buildCardSmall(
+                              icon: Icons.assignment_turned_in_outlined,
+                              title: "Pinjam",
+                              subtitleTop: "Aktif",
+                              value: peminjamanAktif.toString(),
+                              subtitleBottom: "Sedang dipinjam",
                             ),
                           ),
-
                           const SizedBox(height: 16),
                           Expanded(
-                            child: Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(
-                                  color: primaryOrange,
-                                  width: 1.8,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: primaryOrange.withOpacity(0.07),
-                                    blurRadius: 12,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.all(10),
-                                        decoration: BoxDecoration(
-                                          color: primaryOrange.withOpacity(
-                                            0.12,
-                                          ),
-                                          borderRadius: BorderRadius.circular(
-                                            12,
-                                          ),
-                                        ),
-                                        child: Icon(
-                                          Icons.history_rounded,
-                                          size: 32,
-                                          color: primaryOrange,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 14),
-                                      Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: const [
-                                          Text(
-                                            'Riwayat',
-                                            style: TextStyle(
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.w500,
-                                              color: Colors.black87,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-
-                                  const Spacer(),
-
-                                  Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        '2',
-                                        style: TextStyle(
-                                          fontSize: 42,
-                                          fontWeight: FontWeight.bold,
-                                          color: primaryOrange,
-                                          height: 1.0,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                      const SizedBox(height: 6),
-                                      const Text(
-                                        'Riwayat',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.black54,
-                                          fontWeight: FontWeight.w400,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ],
-                                  ),
-
-                                  const SizedBox(height: 16),
-                                ],
-                              ),
+                            child: _buildCardSmall(
+                              icon: Icons.history_rounded,
+                              title: "Riwayat",
+                              subtitleTop: "",
+                              value: totalRiwayat.toString(),
+                              subtitleBottom: "Total Riwayat",
                             ),
                           ),
                         ],
@@ -302,187 +167,17 @@ class _PeminjamDashboardPageState extends State<PeminjamDashboardPage> {
                   ],
                 ),
               ),
-
               const SizedBox(height: 32),
-
               const Text(
-                'Riwayat ',
+                'Riwayat',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
-
               const SizedBox(height: 16),
-
-              Container(
-                margin: const EdgeInsets.only(bottom: 16),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.grey.shade200),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: primaryOrange.withOpacity(0.12),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(
-                        Icons.access_time_rounded,
-                        size: 32,
-                        color: primaryOrange,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Pinjam: 16/1/2026',
-                            style: TextStyle(
-                              fontSize: 13.5,
-                              color: Colors.grey.shade800,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            'Kembali: 22/1/2026',
-                            style: TextStyle(
-                              fontSize: 13.5,
-                              color: Colors.grey.shade800,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: primaryOrange,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: const Text(
-                            'Dipinjam',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          '2 item',
-                          style: TextStyle(fontSize: 12, color: Colors.black54),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.grey.shade200),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.green.withOpacity(0.12),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(
-                        Icons.check_circle_outline_rounded,
-                        size: 32,
-                        color: Colors.green.shade700,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Pinjam: 10/1/2026',
-                            style: TextStyle(
-                              fontSize: 13.5,
-                              color: Colors.grey.shade800,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            'Kembali: 15/1/2026',
-                            style: TextStyle(
-                              fontSize: 13.5,
-                              color: Colors.grey.shade800,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.green.shade600,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: const Text(
-                            'Dikembalikan',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          '1 item',
-                          style: TextStyle(fontSize: 12, color: Colors.black54),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
+              for (var item in riwayat) _buildRiwayatItem(item),
             ],
           ),
         ),
       ),
-
       bottomNavigationBar: PeminjamBottomNav(
         currentIndex: _currentIndex,
         onTap: (index) {
@@ -506,6 +201,7 @@ class _PeminjamDashboardPageState extends State<PeminjamDashboardPage> {
             default:
               return;
           }
+
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (_) => page),
@@ -514,4 +210,173 @@ class _PeminjamDashboardPageState extends State<PeminjamDashboardPage> {
       ),
     );
   }
+
+  // Card Besar
+  Widget _buildCard({
+    required IconData icon,
+    required String title,
+    required String value,
+    required String subtitle,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: _cardDecoration(),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 80, color: primaryOrange),
+          const SizedBox(height: 24),
+          Text(title, style: _titleStyle()),
+          const SizedBox(height: 12),
+          Text(value, style: _valueStyle()),
+          const SizedBox(height: 8),
+          Text(subtitle, style: _subtitleStyle()),
+        ],
+      ),
+    );
+  }
+
+  // Card Kecil
+  Widget _buildCardSmall({
+    required IconData icon,
+    required String title,
+    required String subtitleTop,
+    required String value,
+    required String subtitleBottom,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: _cardDecoration(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              _iconBox(icon),
+              const SizedBox(width: 14),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: _titleSmall()),
+                  if (subtitleTop.isNotEmpty)
+                    Text(subtitleTop, style: _titleSmall()),
+                ],
+              ),
+            ],
+          ),
+          const Spacer(),
+          Column(
+            children: [
+              Text(value, style: _valueSmall()),
+              const SizedBox(height: 6),
+              Text(subtitleBottom, style: _subtitleStyle()),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Riwayat Item
+  Widget _buildRiwayatItem(Map<String, dynamic> item) {
+    final pinjam = item['tanggal_pinjam'] ?? '-';
+    final kembali = item['tanggal_kembali'] ?? '-';
+    final jumlah = item['detail_peminjaman']?.length ?? 0;
+    final isReturned = item['tanggal_kembali'] != null;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: _cardDecoration(),
+      child: Row(
+        children: [
+          _iconBox(
+            isReturned
+                ? Icons.check_circle_outline_rounded
+                : Icons.access_time_rounded,
+            color: isReturned ? Colors.green : primaryOrange,
+            bg: (isReturned ? Colors.green : primaryOrange).withOpacity(0.12),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("Pinjam: $pinjam"),
+                const SizedBox(height: 6),
+                Text("Kembali: $kembali"),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: isReturned ? Colors.green : primaryOrange,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  isReturned ? "Dikembalikan" : "Dipinjam",
+                  style: const TextStyle(color: Colors.white, fontSize: 12),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text('$jumlah item', style: const TextStyle(fontSize: 12)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Styles & Decorations
+  BoxDecoration _cardDecoration() => BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: primaryOrange, width: 1.8),
+        boxShadow: [
+          BoxShadow(
+            color: primaryOrange.withOpacity(0.07),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      );
+
+  Widget _iconBox(IconData icon, {Color color = primaryOrange, Color? bg}) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: bg ?? primaryOrange.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Icon(icon, size: 32, color: color),
+    );
+  }
+
+  TextStyle _titleStyle() =>
+      const TextStyle(fontSize: 17, fontWeight: FontWeight.w600);
+
+  TextStyle _titleSmall() =>
+      const TextStyle(fontSize: 13, fontWeight: FontWeight.w500);
+
+  TextStyle _valueStyle() => const TextStyle(
+        fontSize: 52,
+        fontWeight: FontWeight.bold,
+        color: primaryOrange,
+      );
+
+  TextStyle _valueSmall() => const TextStyle(
+        fontSize: 42,
+        fontWeight: FontWeight.bold,
+        color: primaryOrange,
+      );
+
+  TextStyle _subtitleStyle() =>
+      const TextStyle(fontSize: 13, color: Colors.black54);
 }

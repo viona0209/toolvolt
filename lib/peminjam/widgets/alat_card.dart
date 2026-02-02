@@ -6,7 +6,8 @@ class AlatCard extends StatelessWidget {
   final String kondisi;
   final int? jumlahKondisiBaik;
   final int totalItem;
-  final String? imageAsset;
+  final String? imageAsset; // URL Supabase
+  final VoidCallback? ajukanPinjam; // ✅ tambahkan callback
 
   const AlatCard({
     super.key,
@@ -16,6 +17,7 @@ class AlatCard extends StatelessWidget {
     this.jumlahKondisiBaik,
     required this.totalItem,
     this.imageAsset,
+    this.ajukanPinjam, // ✅ tambahkan parameter
   });
 
   static const Color primaryOrange = Color(0xFFFF8E01);
@@ -36,6 +38,7 @@ class AlatCard extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // --- GAMBAR SUPABASE NETWORK FIX ---
               Container(
                 width: 80,
                 height: 80,
@@ -47,12 +50,12 @@ class AlatCard extends StatelessWidget {
                 child: Center(
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(8),
-                    child: imageAsset != null && imageAsset!.isNotEmpty
-                        ? Image.asset(
+                    child: (imageAsset != null && imageAsset!.isNotEmpty)
+                        ? Image.network(
                             imageAsset!,
-                            fit: BoxFit.cover,
                             width: 80,
                             height: 80,
+                            fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) {
                               return const Icon(
                                 Icons.broken_image_rounded,
@@ -76,9 +79,9 @@ class AlatCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // NAMA + KONDISI
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Expanded(
                           child: Text(
@@ -110,7 +113,10 @@ class AlatCard extends StatelessWidget {
                         ),
                       ],
                     ),
+
                     const SizedBox(height: 4),
+
+                    // KATEGORI
                     Text(
                       kategori,
                       style: TextStyle(
@@ -119,9 +125,12 @@ class AlatCard extends StatelessWidget {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
+
                     const SizedBox(height: 12),
                     const Divider(height: 1, color: Color(0xFFE0E0E0)),
                     const SizedBox(height: 12),
+
+                    // KONDISI ITEM
                     Text(
                       jumlahKondisiBaik != null
                           ? 'Kondisi : $jumlahKondisiBaik Item'
@@ -131,7 +140,10 @@ class AlatCard extends StatelessWidget {
                         color: Colors.black87,
                       ),
                     ),
+
                     const SizedBox(height: 4),
+
+                    // TOTAL ITEM
                     Text(
                       'Total : $totalItem Item',
                       style: const TextStyle(
@@ -144,35 +156,31 @@ class AlatCard extends StatelessWidget {
               ),
             ],
           ),
+
           const SizedBox(height: 16),
           const Divider(height: 1, color: Color(0xFFE0E0E0)),
           const SizedBox(height: 16),
+
+          // BUTTON AJUKAN PINJAM
           SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Ajukan pinjam $namaAlat'),
-                    backgroundColor: primaryOrange,
-                  ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: primaryOrange,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                elevation: 0,
-              ),
-              child: const Text(
-                'Ajukan Pinjam',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-              ),
-            ),
-          ),
+  width: double.infinity,
+  child: ElevatedButton(
+    onPressed: ajukanPinjam, // pakai callback
+    style: ElevatedButton.styleFrom(
+      backgroundColor: primaryOrange,
+      foregroundColor: Colors.white,
+      padding: const EdgeInsets.symmetric(vertical: 14),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(30),
+      ),
+      elevation: 0,
+    ),
+    child: const Text(
+      'Ajukan Pinjam',
+      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+    ),
+  ),
+),
         ],
       ),
     );

@@ -17,18 +17,43 @@ class _PenggunaScreenState extends State<PenggunaScreen> {
   final penggunaService = PenggunaService();
 
   List<Map<String, dynamic>> penggunaList = [];
+  List<Map<String, dynamic>> filteredPenggunaList = [];
   bool loading = true;
+  final searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     loadData();
+    searchController.addListener(_filterPengguna);
+  }
+
+  @override
+  void dispose() {
+    searchController.dispose();
+    super.dispose();
+  }
+
+  void _filterPengguna() {
+    final query = searchController.text.toLowerCase();
+    setState(() {
+      if (query.isEmpty) {
+        filteredPenggunaList = penggunaList;
+      } else {
+        filteredPenggunaList = penggunaList.where((pengguna) {
+          final nama = (pengguna['nama'] ?? '').toString().toLowerCase();
+          final role = (pengguna['role'] ?? '').toString().toLowerCase();
+          return nama.contains(query) || role.contains(query);
+        }).toList();
+      }
+    });
   }
 
   Future<void> loadData() async {
     setState(() => loading = true);
 
     penggunaList = await penggunaService.getPengguna();
+    filteredPenggunaList = penggunaList;
 
     setState(() => loading = false);
   }
@@ -43,9 +68,8 @@ class _PenggunaScreenState extends State<PenggunaScreen> {
         .where((e) => e['role'] == 'petugas' || e['role'] == 'admin')
         .length;
 
-    final totalPeminjam = penggunaList
-        .where((e) => e['role'] == 'peminjam')
-        .length;
+    final totalPeminjam =
+        penggunaList.where((e) => e['role'] == 'peminjam').length;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -95,7 +119,12 @@ class _PenggunaScreenState extends State<PenggunaScreen> {
                       Row(
                         children: [
                           Expanded(
-                            child: TextField(decoration: inputDecoration()),
+                            child: TextField(
+                              controller: searchController,
+                              decoration: inputDecoration(
+                                // hintText: 'Cari pengguna...',
+                              ),
+                            ),
                           ),
                           const SizedBox(width: 12),
                           InkWell(
@@ -140,9 +169,7 @@ class _PenggunaScreenState extends State<PenggunaScreen> {
                                   subtitle: "Terdaftar",
                                 ),
                               ),
-
                               const SizedBox(width: 12),
-
                               Expanded(
                                 flex: 2,
                                 child: Column(
@@ -203,41 +230,56 @@ class _PenggunaScreenState extends State<PenggunaScreen> {
                             _buildHeader(),
 
                             // --- LOOP DATA ---
-                            ...penggunaList.map((item) {
-                              return Column(
-                                children: [
-                                  PenggunaCard(
-                                    name: item['nama'] ?? "-",
-                                    role: item['role'] ?? "",
-                                    onEdit: () async {
-                                      final success =
-                                          await showEditPenggunaDialog(
-                                            context,
-                                            item['id_pengguna'],
-                                            item['nama'],
-                                            item['username'],
-                                            item['role'],
-                                          );
-                                      if (success == true) loadData();
-                                    },
-                                    onDelete: () async {
-                                      final success =
-                                          await showHapusPenggunaDialog(
-                                            context,
-                                            item['id_pengguna'], // hapus uid_auth
-                                            item['nama'],
-                                          );
-                                      if (success == true) loadData();
-                                    },
+                            if (filteredPenggunaList.isEmpty)
+                              Padding(
+                                padding: const EdgeInsets.all(32.0),
+                                child: Text(
+                                  'Tidak ada pengguna ditemukan',
+                                  style: TextStyle(
+                                    color: Colors.grey[600],
+                                    fontSize: 14,
                                   ),
-                                  Divider(
-                                    height: 1,
-                                    thickness: 1,
-                                    color: Colors.grey[300],
-                                  ),
-                                ],
-                              );
-                            }).toList(),
+                                ),
+                              )
+                            else
+                              ...filteredPenggunaList.map((item) {
+                                return Column(
+                                  children: [
+                                    PenggunaCard(
+                                      name: item['nama'] ?? "-",
+                                      role: item['role'] ?? "",
+                                      onEdit: () async {
+                                        final success =
+                                            await showEditPenggunaDialog(
+                                          context,
+                                          item['id_pengguna'],
+                                          item['nama'],
+                                          item['username'],
+                                          item['role'],
+                                        );
+                                        if (success == true) loadData();
+                                      },
+                                      onDelete: () async {
+                                        final success =
+                                            await showHapusPenggunaDialog(
+                                          context,
+                                          item['id_pengguna'],
+                                          item['nama'],
+                                          authId: item['auth_id']?.toString(), // ✅ KIRIM AUTH_ID
+                                        );
+                                        if (success == true) loadData();
+                                      },
+                                    ),
+                                    if (item !=
+                                        filteredPenggunaList.last)
+                                      Divider(
+                                        height: 1,
+                                        thickness: 1,
+                                        color: Colors.grey[300],
+                                      ),
+                                  ],
+                                );
+                              }).toList(),
                           ],
                         ),
                       ),

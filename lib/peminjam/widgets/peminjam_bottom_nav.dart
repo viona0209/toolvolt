@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:toolvolt/login_screen.dart';
 
 class PeminjamBottomNav extends StatelessWidget {
   final int currentIndex;
@@ -45,7 +46,10 @@ class PeminjamBottomNav extends StatelessWidget {
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
-                Navigator.pushReplacementNamed(context, '/login');
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LoginScreen()),
+                );
               },
               child: Text(
                 'Ya, Logout',

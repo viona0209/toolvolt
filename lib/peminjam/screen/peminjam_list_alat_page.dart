@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:toolvolt/peminjam/screen/peminjam_dashboard_page.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../service/alat_service.dart';
 import '../widgets/alat_card.dart';
 import '../widgets/peminjam_bottom_nav.dart';
+import 'peminjam_dashboard_page.dart';
 import 'peminjam_peminjaman_page.dart';
 import 'peminjam_pengembalian_page.dart';
 
@@ -14,11 +16,111 @@ class PeminjamListAlatPage extends StatefulWidget {
 
 class _PeminjamListAlatPageState extends State<PeminjamListAlatPage> {
   int _currentIndex = 0;
-
   static const Color primaryColor = Color(0xFFFF8E01);
 
-  TextEditingController searchController = TextEditingController();
+  final TextEditingController searchController = TextEditingController();
   String selectedKategori = 'Kategori';
+
+  final AlatService _alatService = AlatService();
+  final supabase = Supabase.instance.client;
+
+  List<Map<String, dynamic>> alatList = [];
+  List<Map<String, dynamic>> filteredList = [];
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchAlat();
+  }
+
+  Future<void> fetchAlat() async {
+    final data = await _alatService.getAlat();
+
+    setState(() {
+      alatList = data;
+      filteredList = data;
+      isLoading = false;
+    });
+  }
+
+  void applyFilter() {
+    String keyword = searchController.text.toLowerCase();
+
+    setState(() {
+      filteredList = alatList.where((item) {
+        final nama = item['nama_alat'].toString().toLowerCase();
+        final kategori = item['kategori']['nama_kategori'].toString();
+
+        final matchSearch = nama.contains(keyword);
+        final matchKategori = selectedKategori == 'Kategori'
+            ? true
+            : kategori == selectedKategori;
+
+        return matchSearch && matchKategori;
+      }).toList();
+    });
+  }
+
+  // ==================== AJUKAN PEMINJAMAN ====================
+  Future<void> ajukanPeminjaman(int idAlat, {int jumlah = 1}) async {
+    try {
+      // Ambil session user Supabase
+      final session = supabase.auth.currentSession;
+      if (session == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Silakan login terlebih dahulu'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      // Ambil id_pengguna dari tabel pengguna
+      final userData = await supabase
+          .from('pengguna')
+          .select('id_pengguna')
+          .eq('auth_id', session.user.id)
+          .single();
+
+      final int idPeminjam = userData['id_pengguna'];
+
+      // 1️⃣ Insert ke peminjaman
+      final peminjaman = await supabase
+          .from('peminjaman')
+          .insert({
+            'id_pengguna': idPeminjam,
+            'tanggal_pinjam': DateTime.now().toIso8601String(),
+            'status': 'Menunggu', // status awal
+          })
+          .select()
+          .single(); // ambil row baru
+
+      final int idPeminjaman = peminjaman['id_peminjaman'];
+
+      // 2️⃣ Insert ke detail_peminjaman
+      await supabase.from('detail_peminjaman').insert({
+        'id_peminjaman': idPeminjaman,
+        'id_alat': idAlat,
+        'jumlah': jumlah,
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Pengajuan berhasil, menunggu persetujuan petugas'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal mengajukan peminjaman: $error'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
 
   @override
   void dispose() {
@@ -33,21 +135,21 @@ class _PeminjamListAlatPageState extends State<PeminjamListAlatPage> {
       body: SafeArea(
         child: Column(
           children: [
+            // ================= HEADER =================
             Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  const SizedBox(height: 50),
+                  const SizedBox(height: 40),
                   Center(
                     child: Image.asset(
                       'assets/image/logo1remove.png',
                       width: MediaQuery.of(context).size.width * 0.55,
-                      fit: BoxFit.contain,
                     ),
                   ),
+                  const SizedBox(height: 25),
 
-                  const SizedBox(height: 35),
-
+                  // ================= SEARCH & FILTER =================
                   Row(
                     children: [
                       Expanded(
@@ -60,29 +162,22 @@ class _PeminjamListAlatPageState extends State<PeminjamListAlatPage> {
                           ),
                           child: TextField(
                             controller: searchController,
+                            onChanged: (v) => applyFilter(),
                             decoration: InputDecoration(
-                              hintText: 'Cari',
-                              hintStyle: TextStyle(
-                                color: Colors.grey.shade400,
-                                fontSize: 14,
-                              ),
+                              hintText: 'Cari alat...',
                               prefixIcon: Icon(
                                 Icons.search,
                                 color: Colors.grey.shade400,
-                                size: 20,
                               ),
                               border: InputBorder.none,
                               contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 16,
-                                vertical: 12,
                               ),
                             ),
                           ),
                         ),
                       ),
-
                       const SizedBox(width: 12),
-
                       Container(
                         height: 45,
                         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -94,43 +189,28 @@ class _PeminjamListAlatPageState extends State<PeminjamListAlatPage> {
                         child: DropdownButtonHideUnderline(
                           child: DropdownButton<String>(
                             value: selectedKategori,
-                            icon: const Icon(
-                              Icons.keyboard_arrow_down,
-                              size: 20,
-                            ),
                             items: const [
                               DropdownMenuItem(
                                 value: 'Kategori',
-                                child: Text(
-                                  'Kategori',
-                                  style: TextStyle(fontSize: 14),
-                                ),
+                                child: Text('Kategori'),
                               ),
                               DropdownMenuItem(
                                 value: 'Alat Ukur',
-                                child: Text(
-                                  'Alat Ukur',
-                                  style: TextStyle(fontSize: 14),
-                                ),
+                                child: Text('Alat Ukur'),
                               ),
                               DropdownMenuItem(
                                 value: 'Alat Tangan',
-                                child: Text(
-                                  'Alat Tangan',
-                                  style: TextStyle(fontSize: 14),
-                                ),
+                                child: Text('Alat Tangan'),
                               ),
                               DropdownMenuItem(
                                 value: 'Alat Listrik',
-                                child: Text(
-                                  'Alat Listrik',
-                                  style: TextStyle(fontSize: 14),
-                                ),
+                                child: Text('Alat Listrik'),
                               ),
                             ],
                             onChanged: (value) {
                               setState(() {
                                 selectedKategori = value!;
+                                applyFilter();
                               });
                             },
                           ),
@@ -142,49 +222,40 @@ class _PeminjamListAlatPageState extends State<PeminjamListAlatPage> {
               ),
             ),
 
+            // ================= LIST DATA =================
             Expanded(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                children: [
-                  AlatCard(
-                    namaAlat: 'Multimeter Digital',
-                    kategori: 'Alat Ukur',
-                    kondisi: 'Baik',
-                    jumlahKondisiBaik: 13,
-                    totalItem: 15,
-                    imageAsset: 'assets/image/multimeter.png',
-                  ),
+              child: isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : filteredList.isEmpty
+                      ? const Center(child: Text("Tidak ada alat ditemukan"))
+                      : ListView.builder(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          itemCount: filteredList.length,
+                          itemBuilder: (context, index) {
+                            final alat = filteredList[index];
 
-                  AlatCard(
-                    namaAlat: 'Tang Potong',
-                    kategori: 'Alat Tangan',
-                    kondisi: 'Baik',
-                    totalItem: 5,
-                    imageAsset: 'assets/image/tangpotong.png',
-                  ),
-
-                  AlatCard(
-                    namaAlat: 'Solder Listrik',
-                    kategori: 'Alat Listrik',
-                    kondisi: 'Baik',
-                    jumlahKondisiBaik: 10,
-                    totalItem: 10,
-                    imageAsset: 'assets/image/solderlistrik.png',
-                  ),
-                  const SizedBox(height: 16),
-                ],
-              ),
+                            return AlatCard(
+                              namaAlat: alat['nama_alat'],
+                              kategori: alat['kategori']['nama_kategori'],
+                              kondisi: alat['kondisi'] ?? 'Baik',
+                              imageAsset: alat['gambar_alat'],
+                              jumlahKondisiBaik: alat['jumlah_tersedia'],
+                              totalItem: alat['jumlah_total'],
+                              ajukanPinjam: () =>
+                                  ajukanPeminjaman(alat['id_alat']),
+                            );
+                          },
+                        ),
             ),
           ],
         ),
       ),
 
+      // ================= NAVIGATION =================
       bottomNavigationBar: PeminjamBottomNav(
         currentIndex: _currentIndex,
         onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
+          setState(() => _currentIndex = index);
 
           Widget? page;
           switch (index) {
@@ -200,15 +271,12 @@ class _PeminjamListAlatPageState extends State<PeminjamListAlatPage> {
             case 3:
               page = const PeminjamPengembalianPage();
               break;
-            default:
-              return;
           }
-          if (page != null) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (_) => page!),
-            );
-          }
+
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => page!),
+          );
         },
       ),
     );

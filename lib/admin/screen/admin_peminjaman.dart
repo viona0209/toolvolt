@@ -89,15 +89,15 @@ class _PeminjamanScreenState extends State<PeminjamanScreen> {
   }
 
   void _showAddPeminjamanDialog() {
-  showDialog(
-    context: context,
-    builder: (context) => TambahPeminjamanDialog(
-      onSuccess: () {
-        _loadPeminjaman(); // tetap refresh data setelah tambah
-      },
-    ),
-  );
-}
+    showDialog(
+      context: context,
+      builder: (context) => TambahPeminjamanDialog(
+        onSuccess: () {
+          _loadPeminjaman();
+        },
+      ),
+    );
+  }
 
   String _formatDate(String? dateStr) {
     if (dateStr == null || dateStr.isEmpty) return '-';
@@ -117,77 +117,91 @@ class _PeminjamanScreenState extends State<PeminjamanScreen> {
         child: _isLoading
             ? const Center(child: CircularProgressIndicator())
             : _peminjamanList.isEmpty
-                ? const Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.hourglass_empty, size: 60, color: Colors.grey),
-                        SizedBox(height: 16),
-                        Text(
-                          'Belum ada data peminjaman',
-                          style: TextStyle(fontSize: 18, color: Colors.grey),
+            ? const Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.hourglass_empty, size: 60, color: Colors.grey),
+                    SizedBox(height: 16),
+                    Text(
+                      'Belum ada data peminjaman',
+                      style: TextStyle(fontSize: 18, color: Colors.grey),
+                    ),
+                  ],
+                ),
+              )
+            : RefreshIndicator(
+                onRefresh: _loadPeminjaman,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 50),
+                      Center(
+                        child: Image.asset(
+                          "assets/image/logo1remove.png",
+                          width: MediaQuery.of(context).size.width * 0.55,
                         ),
-                      ],
-                    ),
-                  )
-                : RefreshIndicator(
-                    onRefresh: _loadPeminjaman, // pull-to-refresh
-                    child: SingleChildScrollView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 50),
-                          Center(
-                            child: Image.asset(
-                              "assets/image/logo1remove.png",
-                              width: MediaQuery.of(context).size.width * 0.55,
-                            ),
-                          ),
-                          const SizedBox(height: 35),
-                          const Text(
-                            "List Peminjaman",
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-
-                          // List peminjaman
-                          ..._peminjamanList.map((data) {
-                            final detailList = data['detail_peminjaman'] as List<dynamic>? ?? [];
-
-                            final List<Map<String, dynamic>> items = detailList.map((d) {
-                              final alatMap = d['alat'] as Map<String, dynamic>? ?? {};
-                              return {
-                                'nama_alat': alatMap['nama_alat'] as String? ?? 'Alat tidak diketahui',
-                                'jumlah': d['jumlah'] as int? ?? 0,
-                              };
-                            }).toList();
-
-                            return PeminjamanCard(
-                              id: data['id_peminjaman'].toString(),
-                              nama: (data['pengguna'] as Map?)?['nama'] as String? ?? 'Unknown',
-                              tglPinjam: _formatDate(data['tanggal_pinjam']),
-                              tglKembali: _formatDate(data['tanggal_kembali']),
-                              status: data['status'] ?? 'dipinjam',
-                              statusColor: (data['status']?.toString().toLowerCase().contains('kembali') ?? false)
-                                  ? Colors.green
-                                  : (data['status']?.toString().toLowerCase() == 'dipinjam' ? Colors.orange : Colors.grey),
-                              // disetujuiOleh & dikembalikanOleh bisa diisi dari log_aktivitas nanti
-                              items: items,
-                              onRefresh: _loadPeminjaman, // ← ini kuncinya! refresh otomatis setelah edit/hapus
-                            );
-                          }).toList(),
-
-                          const SizedBox(height: 100), // space bawah biar FAB tidak nutupin card terakhir
-                        ],
                       ),
-                    ),
+                      const SizedBox(height: 35),
+                      const Text(
+                        "List Peminjaman",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      ..._peminjamanList.map((data) {
+                        final detailList =
+                            data['detail_peminjaman'] as List<dynamic>? ?? [];
+
+                        final List<Map<String, dynamic>> items = detailList.map(
+                          (d) {
+                            final alatMap =
+                                d['alat'] as Map<String, dynamic>? ?? {};
+                            return {
+                              'nama_alat':
+                                  alatMap['nama_alat'] as String? ??
+                                  'Alat tidak diketahui',
+                              'jumlah': d['jumlah'] as int? ?? 0,
+                            };
+                          },
+                        ).toList();
+
+                        return PeminjamanCard(
+                          id: data['id_peminjaman'].toString(),
+                          nama:
+                              (data['pengguna'] as Map?)?['nama'] as String? ??
+                              'Unknown',
+                          tglPinjam: _formatDate(data['tanggal_pinjam']),
+                          tglKembali: _formatDate(data['tanggal_kembali']),
+                          status: data['status'] ?? 'dipinjam',
+                          statusColor:
+                              (data['status']
+                                      ?.toString()
+                                      .toLowerCase()
+                                      .contains('kembali') ??
+                                  false)
+                              ? Colors.green
+                              : (data['status']?.toString().toLowerCase() ==
+                                        'dipinjam'
+                                    ? Colors.orange
+                                    : Colors.grey),
+                          items: items,
+                          onRefresh: _loadPeminjaman,
+                        );
+                      }).toList(),
+
+                      const SizedBox(height: 100),
+                    ],
                   ),
+                ),
+              ),
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: const Color(0xFFFF7A00),

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:toolvolt/petugas/service/supabase_peminjaman_service.dart'
+    show PeminjamanService;
 import '../widgets/history_card.dart';
 import '../widgets/persetujuan_card.dart';
 import '../widgets/petugas_bottom_nav.dart';
@@ -16,10 +19,68 @@ class PetugasPeminjamanPage extends StatefulWidget {
 class _PetugasPeminjamanPageState extends State<PetugasPeminjamanPage> {
   int _currentIndex = 0;
 
-  static const Color primaryColor = Color(0xFFBE4A31);
+  final PeminjamanService _service = PeminjamanService();
+
+  // LIST LOKAL UNTUK DATA PEMINJAMAN
+  List<Map<String, dynamic>> _allPeminjaman = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPeminjaman();
+  }
+
+  Future<void> _loadPeminjaman() async {
+    final data = await _service.getAllPeminjaman();
+    setState(() {
+      _allPeminjaman = data;
+      _isLoading = false;
+    });
+  }
+
+  // ===================== UPDATE STATUS PEMINJAMAN =====================
+  Future<void> _updateStatus(int id, String status) async {
+    try {
+      await Supabase.instance.client
+          .from('peminjaman')
+          .update({'status': status})
+          .eq('id_peminjaman', id);
+
+      // UPDATE LIST LOKAL LANGSUNG
+      final index = _allPeminjaman.indexWhere((p) => p['id_peminjaman'] == id);
+      if (index != -1) {
+        setState(() {
+          _allPeminjaman[index]['status'] = status;
+        });
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal mengupdate status: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        backgroundColor: Color(0xFFF6F6F6),
+        body: Center(
+          child: CircularProgressIndicator(color: Color(0xFFBE4A31)),
+        ),
+      );
+    }
+
+    // Memisahkan data
+    final menunggu =
+        _allPeminjaman.where((p) => p['status'] == 'Menunggu').toList();
+    final riwayat =
+        _allPeminjaman.where((p) => p['status'] != 'Menunggu').toList();
+
     return Scaffold(
       backgroundColor: const Color(0xFFF6F6F6),
       body: SafeArea(
@@ -36,48 +97,8 @@ class _PetugasPeminjamanPageState extends State<PetugasPeminjamanPage> {
                 ),
               ),
               const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const Text(
-                    'List Peminjaman',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.grey.shade300),
-                    ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        value: 'Status',
-                        icon: const Icon(Icons.keyboard_arrow_down, size: 18),
-                        items: const [
-                          DropdownMenuItem(
-                            value: 'Status',
-                            child: Text(
-                              'Status',
-                              style: TextStyle(fontSize: 14),
-                            ),
-                          ),
-                        ],
-                        onChanged: (value) {},
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
+
+              // ======================= MENUNGGU =======================
               const Text(
                 'Menunggu Persetujuan',
                 style: TextStyle(
@@ -88,17 +109,48 @@ class _PetugasPeminjamanPageState extends State<PetugasPeminjamanPage> {
               ),
               const SizedBox(height: 12),
 
-              ApprovalCard(
-                id: '3',
-                nama: 'Kangkung',
-                tanggalPinjam: '10/1/2026',
-                tanggalKembali: '17/1/2026',
-                alat: 'Obeng set',
-                jumlah: 1,
-                onApproved: () {},
-                onRejected: () {},
-              ),
-              const SizedBox(height: 32),
+              if (menunggu.isEmpty)
+                const Text(
+                  "Tidak ada peminjaman yang menunggu persetujuan.",
+                  style: TextStyle(color: Colors.grey),
+                ),
+
+              ...menunggu.map((p) {
+                final List details = p['detail_peminjaman'];
+                if (details.isEmpty) return const SizedBox();
+                final detail = details.first;
+
+                return ApprovalCard(
+                  id: p['id_peminjaman'].toString(),
+                  nama: p['pengguna']['nama'] ?? '-',
+                  tanggalPinjam: p['tanggal_pinjam'] ?? '',
+                  tanggalKembali: p['tanggal_kembali'] ?? '',
+                  alat: detail['alat']['nama_alat'] ?? '-',
+                  jumlah: detail['jumlah'] ?? 0,
+                  onApproved: () async {
+                    await _updateStatus(p['id_peminjaman'], 'disetujui');
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Peminjaman disetujui'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  },
+                  onRejected: () async {
+                    await _updateStatus(p['id_peminjaman'], 'ditolak');
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Peminjaman ditolak'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  },
+                );
+              }).toList(),
+
+              const SizedBox(height: 30),
+
+              // ======================= RIWAYAT =======================
               const Text(
                 'Riwayat Peminjaman',
                 style: TextStyle(
@@ -109,44 +161,56 @@ class _PetugasPeminjamanPageState extends State<PetugasPeminjamanPage> {
               ),
               const SizedBox(height: 12),
 
-              HistoryCard(
-                id: '1',
-                nama: 'Dewi Lestari',
-                tanggalPinjam: '16/1/2026',
-                tanggalKembali: '23/1/2026',
-                alat: 'Tang Potong',
-                status: 'Dipinjam',
-                statusColor: Colors.orange,
-                jumlah: 1,
-              ),
+              if (riwayat.isEmpty)
+                const Text(
+                  "Belum ada riwayat peminjaman.",
+                  style: TextStyle(color: Colors.grey),
+                ),
 
-              HistoryCard(
-                id: '2',
-                nama: 'Ahmad Rizky',
-                tanggalPinjam: '10/1/2026',
-                tanggalKembali: '17/1/2026',
-                alat: 'Tang Ampere',
-                status: 'Dikembalikan',
-                statusColor: Colors.green,
-                jumlah: 1,
-              ),
+              ...riwayat.map((p) {
+                final List details = p['detail_peminjaman'];
+                if (details.isEmpty) return const SizedBox();
+                final detail = details.first;
+
+                Color statusColor = Colors.orange;
+                switch (p['status']) {
+                  case 'dikembalikan':
+                    statusColor = Colors.green;
+                    break;
+                  case 'ditolak':
+                    statusColor = Colors.red;
+                    break;
+                  case 'disetujui':
+                    statusColor = Colors.green;
+                    break;
+                  case 'dipinjam':
+                    statusColor = Colors.blue;
+                    break;
+                }
+
+                return HistoryCard(
+                  id: p['id_peminjaman'].toString(),
+                  nama: p['pengguna']['nama'] ?? '',
+                  tanggalPinjam: p['tanggal_pinjam'] ?? '',
+                  tanggalKembali: p['tanggal_kembali'] ?? '-',
+                  alat: detail['alat']['nama_alat'] ?? '-',
+                  jumlah: detail['jumlah'] ?? 0,
+                  status: p['status'],
+                  statusColor: statusColor,
+                );
+              }).toList(),
+
               const SizedBox(height: 80),
             ],
           ),
         ),
       ),
-
-      // Bottom Navigation
       bottomNavigationBar: PetugasBottomNav(
         currentIndex: _currentIndex,
         onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
+          setState(() => _currentIndex = index);
 
           switch (index) {
-            case 0:
-              break;
             case 1:
               Navigator.pushReplacement(
                 context,

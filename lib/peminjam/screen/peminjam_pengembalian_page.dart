@@ -97,13 +97,6 @@ class _PeminjamPengembalianPageState extends State<PeminjamPengembalianPage> {
                 ),
               );
               break;
-
-            // case 4:
-            //   Navigator.pushReplacement(
-            //     context,
-            //     MaterialPageRoute(builder: (_) => const PengaturanPage()),
-            //   );
-            //   break;
           }
         },
       ),

@@ -62,7 +62,7 @@ class _AdminAlatScreenState extends State<AdminAlatScreen> {
       barrierDismissible: false,
       builder: (context) => TambahAlatDialog(
         onSuccess: () {
-          _loadData(); // reload list setelah berhasil tambah alat
+          _loadData(); 
         },
       ),
     );
@@ -84,7 +84,6 @@ class _AdminAlatScreenState extends State<AdminAlatScreen> {
             ),
             const SizedBox(height: 35),
 
-            // Search + Filter
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Row(

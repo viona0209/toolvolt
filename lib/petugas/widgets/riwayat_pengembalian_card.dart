@@ -5,6 +5,7 @@ class RiwayatPengembalianCard extends StatelessWidget {
   final String nama;
   final String tanggalKembali;
   final String denda;
+  final String kondisiSetelah; // tambahkan ini
 
   const RiwayatPengembalianCard({
     super.key,
@@ -12,10 +13,29 @@ class RiwayatPengembalianCard extends StatelessWidget {
     required this.nama,
     required this.tanggalKembali,
     required this.denda,
+    required this.kondisiSetelah, // wajib
   });
 
   @override
   Widget build(BuildContext context) {
+    // Tentukan warna sesuai kondisi
+    Color statusColor;
+    switch (kondisiSetelah) {
+      case 'Baik':
+        statusColor = Colors.green;
+        break;
+      case 'Rusak Ringan':
+      case 'Rusak Sedang':
+        statusColor = Colors.orange;
+        break;
+      case 'Rusak Berat':
+      case 'Hilang':
+        statusColor = Colors.red;
+        break;
+      default:
+        statusColor = Colors.grey;
+    }
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -32,6 +52,7 @@ class RiwayatPengembalianCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Header: ID dan Status
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -43,17 +64,14 @@ class RiwayatPengembalianCard extends StatelessWidget {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 4,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.green,
+                  color: statusColor,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Text(
-                  'Baik',
-                  style: TextStyle(
+                child: Text(
+                  kondisiSetelah,
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
@@ -65,6 +83,7 @@ class RiwayatPengembalianCard extends StatelessWidget {
 
           const SizedBox(height: 12),
 
+          // Nama peminjam
           Row(
             children: [
               const Icon(Icons.person_outline, size: 16, color: Colors.grey),
@@ -78,13 +97,10 @@ class RiwayatPengembalianCard extends StatelessWidget {
 
           const SizedBox(height: 8),
 
+          // Tanggal kembali
           Row(
             children: [
-              const Icon(
-                Icons.calendar_today_outlined,
-                size: 16,
-                color: Colors.grey,
-              ),
+              const Icon(Icons.calendar_today_outlined, size: 16, color: Colors.grey),
               const SizedBox(width: 8),
               Text(
                 'Kembali : $tanggalKembali',
@@ -95,6 +111,7 @@ class RiwayatPengembalianCard extends StatelessWidget {
 
           const SizedBox(height: 8),
 
+          // Denda
           Text(
             'Denda : $denda',
             style: const TextStyle(fontSize: 14, color: Colors.black87),
