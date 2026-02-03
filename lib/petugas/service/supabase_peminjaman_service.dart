@@ -41,8 +41,6 @@ class PeminjamanService {
             'id_pengguna': idPengguna,
             'tanggal_pinjam': tanggalPinjam.toIso8601String().split('T')[0],
             'tanggal_kembali': tanggalKembali?.toIso8601String().split('T')[0],
-
-            // STATUS AWAL HARUS "MENUNGGU"
             'status': 'Menunggu',
           })
           .select('id_peminjaman')

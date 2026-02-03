@@ -3,9 +3,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 final supabase = Supabase.instance.client;
 
 class LaporanService {
-  // ========================
-  // LAPORAN PEMINJAMAN
-  // ========================
   Future<List<Map<String, dynamic>>> getLaporanPeminjaman({
     required String start,
     required String end,
@@ -37,9 +34,6 @@ class LaporanService {
     return List<Map<String, dynamic>>.from(response);
   }
 
-    // ========================
-  // LAPORAN PENGEMBALIAN
-  // ========================
   Future<List<Map<String, dynamic>>> getLaporanPengembalian({
     required String start,
     required String end,

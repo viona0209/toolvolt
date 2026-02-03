@@ -33,7 +33,6 @@ class _PeminjamDashboardPageState extends State<PeminjamDashboardPage> {
     loadPeminjamIdAndData();
   }
 
-  // Ambil idPeminjam dari tabel 'pengguna'
   Future<void> loadPeminjamIdAndData() async {
     final user = Supabase.instance.client.auth.currentUser;
 
@@ -42,7 +41,7 @@ class _PeminjamDashboardPageState extends State<PeminjamDashboardPage> {
       return;
     }
 
-    final authId = user.id; // UUID dari Supabase Auth
+    final authId = user.id;
 
     final response = await Supabase.instance.client
         .from('pengguna')
@@ -62,7 +61,6 @@ class _PeminjamDashboardPageState extends State<PeminjamDashboardPage> {
     loadData();
   }
 
-  // Load semua data dashboard
   Future<void> loadData() async {
     if (idPeminjam == null) return;
 
@@ -83,32 +81,6 @@ class _PeminjamDashboardPageState extends State<PeminjamDashboardPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: const Text(
-          'Dashboard Peminjam',
-          style: TextStyle(color: Colors.black),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout, color: Colors.red),
-            onPressed: () async {
-              // Logout Supabase
-              await Supabase.instance.client.auth.signOut();
-
-              // Langsung navigasi ke LoginScreen tanpa named route
-              if (!mounted) return;
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const LoginScreen(),
-                ),
-              );
-            },
-          ),
-        ],
-      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(20, 24, 20, 40),
@@ -211,7 +183,6 @@ class _PeminjamDashboardPageState extends State<PeminjamDashboardPage> {
     );
   }
 
-  // Card Besar
   Widget _buildCard({
     required IconData icon,
     required String title,
@@ -236,7 +207,6 @@ class _PeminjamDashboardPageState extends State<PeminjamDashboardPage> {
     );
   }
 
-  // Card Kecil
   Widget _buildCardSmall({
     required IconData icon,
     required String title,
@@ -277,12 +247,48 @@ class _PeminjamDashboardPageState extends State<PeminjamDashboardPage> {
     );
   }
 
-  // Riwayat Item
   Widget _buildRiwayatItem(Map<String, dynamic> item) {
     final pinjam = item['tanggal_pinjam'] ?? '-';
     final kembali = item['tanggal_kembali'] ?? '-';
     final jumlah = item['detail_peminjaman']?.length ?? 0;
-    final isReturned = item['tanggal_kembali'] != null;
+
+    final status = (item['status'] ?? "").toString().toLowerCase();
+
+    Color statusColor;
+    IconData statusIcon;
+    String statusText;
+
+    switch (status) {
+      case "dikembalikan":
+        statusColor = Colors.green;
+        statusIcon = Icons.check_circle_outline_rounded;
+        statusText = "Dikembalikan";
+        break;
+      case "disetujui":
+        statusColor = Colors.blue;
+        statusIcon = Icons.verified_rounded;
+        statusText = "Disetujui";
+        break;
+      case "dipinjam":
+        statusColor = Colors.orange;
+        statusIcon = Icons.access_time_rounded;
+        statusText = "Dipinjam";
+        break;
+      case "ditolak":
+        statusColor = Colors.red;
+        statusIcon = Icons.cancel_outlined;
+        statusText = "Ditolak";
+        break;
+      case "menunggu":
+        statusColor = Colors.grey;
+        statusIcon = Icons.hourglass_bottom_rounded;
+        statusText = "Menunggu";
+        break;
+      default:
+        statusColor = Colors.black26;
+        statusIcon = Icons.help_outline_rounded;
+        statusText = "Tidak diketahui";
+    }
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -291,11 +297,9 @@ class _PeminjamDashboardPageState extends State<PeminjamDashboardPage> {
       child: Row(
         children: [
           _iconBox(
-            isReturned
-                ? Icons.check_circle_outline_rounded
-                : Icons.access_time_rounded,
-            color: isReturned ? Colors.green : primaryOrange,
-            bg: (isReturned ? Colors.green : primaryOrange).withOpacity(0.12),
+            statusIcon,
+            color: statusColor,
+            bg: statusColor.withOpacity(0.12),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -317,11 +321,11 @@ class _PeminjamDashboardPageState extends State<PeminjamDashboardPage> {
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: isReturned ? Colors.green : primaryOrange,
+                  color: statusColor,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  isReturned ? "Dikembalikan" : "Dipinjam",
+                  statusText,
                   style: const TextStyle(color: Colors.white, fontSize: 12),
                 ),
               ),
@@ -334,19 +338,18 @@ class _PeminjamDashboardPageState extends State<PeminjamDashboardPage> {
     );
   }
 
-  // Styles & Decorations
   BoxDecoration _cardDecoration() => BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: primaryOrange, width: 1.8),
-        boxShadow: [
-          BoxShadow(
-            color: primaryOrange.withOpacity(0.07),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      );
+    color: Colors.white,
+    borderRadius: BorderRadius.circular(20),
+    border: Border.all(color: primaryOrange, width: 1.8),
+    boxShadow: [
+      BoxShadow(
+        color: primaryOrange.withOpacity(0.07),
+        blurRadius: 12,
+        offset: const Offset(0, 4),
+      ),
+    ],
+  );
 
   Widget _iconBox(IconData icon, {Color color = primaryOrange, Color? bg}) {
     return Container(
@@ -366,16 +369,16 @@ class _PeminjamDashboardPageState extends State<PeminjamDashboardPage> {
       const TextStyle(fontSize: 13, fontWeight: FontWeight.w500);
 
   TextStyle _valueStyle() => const TextStyle(
-        fontSize: 52,
-        fontWeight: FontWeight.bold,
-        color: primaryOrange,
-      );
+    fontSize: 52,
+    fontWeight: FontWeight.bold,
+    color: primaryOrange,
+  );
 
   TextStyle _valueSmall() => const TextStyle(
-        fontSize: 42,
-        fontWeight: FontWeight.bold,
-        color: primaryOrange,
-      );
+    fontSize: 42,
+    fontWeight: FontWeight.bold,
+    color: primaryOrange,
+  );
 
   TextStyle _subtitleStyle() =>
       const TextStyle(fontSize: 13, color: Colors.black54);

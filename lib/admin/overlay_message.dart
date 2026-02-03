@@ -4,7 +4,7 @@ class OverlayMessage {
   static void show({
     required BuildContext context,
     required String message,
-    Color backgroundColor = const Color(0xFFEF6C01), // default sukses
+    Color backgroundColor = const Color(0xFFEF6C01),
     Duration duration = const Duration(seconds: 2),
   }) {
     final overlay = Overlay.of(context);
@@ -12,19 +12,14 @@ class OverlayMessage {
 
     final overlayEntry = OverlayEntry(
       builder: (context) => Positioned(
-        top: 50, // jarak dari atas layar
+        top: 50,
         left: MediaQuery.of(context).size.width * 0.1,
         right: MediaQuery.of(context).size.width * 0.1,
-        child: _MessageBox(
-          message: message,
-          backgroundColor: backgroundColor,
-        ),
+        child: _MessageBox(message: message, backgroundColor: backgroundColor),
       ),
     );
 
     overlay.insert(overlayEntry);
-
-    // hapus otomatis setelah durasi
     Future.delayed(duration, () {
       overlayEntry.remove();
     });
@@ -34,13 +29,18 @@ class OverlayMessage {
 class _MessageBox extends StatefulWidget {
   final String message;
   final Color backgroundColor;
-  const _MessageBox({Key? key, required this.message, required this.backgroundColor}) : super(key: key);
+  const _MessageBox({
+    Key? key,
+    required this.message,
+    required this.backgroundColor,
+  }) : super(key: key);
 
   @override
   State<_MessageBox> createState() => _MessageBoxState();
 }
 
-class _MessageBoxState extends State<_MessageBox> with SingleTickerProviderStateMixin {
+class _MessageBoxState extends State<_MessageBox>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _opacity;
 

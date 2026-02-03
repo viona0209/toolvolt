@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:toolvolt/admin/screen/admin_dashboard.dart';
 import 'package:toolvolt/petugas/screen/petugas_dashboard.dart';
 import 'package:toolvolt/peminjam/screen/peminjam_dashboard_page.dart';
-import '../services/auth_service.dart'; // Import auth service
+import '../services/auth_service.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -24,88 +25,81 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+  void _showOrangeSnackbar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: const Color(0xFFFF7A00),
+        content: Text(message),
+      ),
+    );
+  }
+
   Future<void> _login() async {
-    // Validasi input
-    if (_emailController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Email tidak boleh kosong'),
-          backgroundColor: Colors.red,
-        ),
-      );
+    final email = _emailController.text.trim();
+    final pass = _passwordController.text.trim();
+
+    if (email.isEmpty) {
+      _showOrangeSnackbar('Email tidak boleh kosong');
       return;
     }
-
-    if (_passwordController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Password tidak boleh kosong'),
-          backgroundColor: Colors.red,
-        ),
-      );
+    if (pass.isEmpty) {
+      _showOrangeSnackbar('Password tidak boleh kosong');
       return;
     }
 
     setState(() => _loading = true);
 
     try {
-      // Login menggunakan Supabase Auth
-      final result = await _authService.login(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-      );
+      // Login via AuthService
+      final result = await _authService.login(email: email, password: pass);
 
       if (!mounted) return;
 
-      if (result['success'] == true) {
-        final String role = result['role'];
+      if (result['success'] == false) {
+        final type = result['error_type'];
 
-        // Routing berdasarkan role
-        if (role == 'admin') {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const AdminDashboard()),
-          );
-        } else if (role == 'petugas') {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const PetugasDashboard()),
-          );
+        if (type == 'email_not_found') {
+          _showOrangeSnackbar('Email tidak terdaftar');
+        } else if (type == 'email_wrong') {
+          _showOrangeSnackbar('Email salah');
+        } else if (type == 'wrong_password') {
+          _showOrangeSnackbar('Password salah');
+        } else if (type == 'email_password_wrong') {
+          _showOrangeSnackbar('Email dan password salah');
         } else {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const PeminjamDashboardPage()),
-          );
+          _showOrangeSnackbar(result['message'] ?? 'Login gagal');
         }
+        return;
+      }
 
-        // Tampilkan pesan sukses
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Selamat datang, ${result['nama']}!'),
-            backgroundColor: Colors.green,
-          ),
+      // Pastikan nama dan role tidak null
+      final userName = (result['nama'] ?? '-').toString();
+      final userRole = (result['role'] ?? 'peminjam').toString();
+
+      _showOrangeSnackbar('Selamat datang, $userName!');
+
+      // Navigasi sesuai role
+      if (userRole == 'admin') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const AdminDashboard()),
+        );
+      } else if (userRole == 'petugas') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const PetugasDashboard()),
         );
       } else {
-        // Login gagal
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(result['message'] ?? 'Login gagal'),
-            backgroundColor: Colors.red,
-          ),
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const PeminjamDashboardPage()),
         );
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      _showOrangeSnackbar('Error: ${e.toString()}');
     } finally {
-      if (mounted) {
-        setState(() => _loading = false);
-      }
+      if (mounted) setState(() => _loading = false);
     }
   }
 
@@ -143,22 +137,20 @@ class _LoginScreenState extends State<LoginScreen> {
               TextField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
-                autocorrect: false,
                 decoration: InputDecoration(
                   hintText: 'admin@example.com',
                   filled: true,
                   fillColor: Colors.grey[100],
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(color: Colors.grey[300]!, width: 1),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFFFF7A00), width: 2),
+                    borderSide: const BorderSide(
+                      color: Color(0xFFFF7A00),
+                      width: 2,
+                    ),
                   ),
                 ),
               ),
@@ -171,22 +163,20 @@ class _LoginScreenState extends State<LoginScreen> {
               TextField(
                 controller: _passwordController,
                 obscureText: true,
-                autocorrect: false,
                 decoration: InputDecoration(
                   hintText: '••••••••',
                   filled: true,
                   fillColor: Colors.grey[100],
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(color: Colors.grey[300]!, width: 1),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFFFF7A00), width: 2),
+                    borderSide: const BorderSide(
+                      color: Color(0xFFFF7A00),
+                      width: 2,
+                    ),
                   ),
                 ),
               ),
@@ -200,17 +190,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
                     ),
-                    elevation: 0,
                   ),
                   onPressed: _loading ? null : _login,
                   child: _loading
-                      ? const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2.5,
-                          ),
+                      ? const CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2.5,
                         )
                       : const Text(
                           'Masuk',

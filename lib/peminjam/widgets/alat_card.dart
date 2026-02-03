@@ -6,8 +6,8 @@ class AlatCard extends StatelessWidget {
   final String kondisi;
   final int? jumlahKondisiBaik;
   final int totalItem;
-  final String? imageAsset; // URL Supabase
-  final VoidCallback? ajukanPinjam; // ✅ tambahkan callback
+  final String? imageAsset;
+  final VoidCallback? ajukanPinjam;
 
   const AlatCard({
     super.key,
@@ -17,7 +17,7 @@ class AlatCard extends StatelessWidget {
     this.jumlahKondisiBaik,
     required this.totalItem,
     this.imageAsset,
-    this.ajukanPinjam, // ✅ tambahkan parameter
+    this.ajukanPinjam,
   });
 
   static const Color primaryOrange = Color(0xFFFF8E01);
@@ -38,7 +38,6 @@ class AlatCard extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // --- GAMBAR SUPABASE NETWORK FIX ---
               Container(
                 width: 80,
                 height: 80,
@@ -79,7 +78,6 @@ class AlatCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // NAMA + KONDISI
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -113,10 +111,7 @@ class AlatCard extends StatelessWidget {
                         ),
                       ],
                     ),
-
                     const SizedBox(height: 4),
-
-                    // KATEGORI
                     Text(
                       kategori,
                       style: TextStyle(
@@ -129,12 +124,10 @@ class AlatCard extends StatelessWidget {
                     const SizedBox(height: 12),
                     const Divider(height: 1, color: Color(0xFFE0E0E0)),
                     const SizedBox(height: 12),
-
-                    // KONDISI ITEM
                     Text(
                       jumlahKondisiBaik != null
-                          ? 'Kondisi : $jumlahKondisiBaik Item'
-                          : 'Kondisi : $kondisi',
+                          ? 'Tersedia : $jumlahKondisiBaik Item'
+                          : 'Tersedia : $kondisi',
                       style: const TextStyle(
                         fontSize: 13,
                         color: Colors.black87,
@@ -143,7 +136,6 @@ class AlatCard extends StatelessWidget {
 
                     const SizedBox(height: 4),
 
-                    // TOTAL ITEM
                     Text(
                       'Total : $totalItem Item',
                       style: const TextStyle(
@@ -161,26 +153,25 @@ class AlatCard extends StatelessWidget {
           const Divider(height: 1, color: Color(0xFFE0E0E0)),
           const SizedBox(height: 16),
 
-          // BUTTON AJUKAN PINJAM
           SizedBox(
-  width: double.infinity,
-  child: ElevatedButton(
-    onPressed: ajukanPinjam, // pakai callback
-    style: ElevatedButton.styleFrom(
-      backgroundColor: primaryOrange,
-      foregroundColor: Colors.white,
-      padding: const EdgeInsets.symmetric(vertical: 14),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(30),
-      ),
-      elevation: 0,
-    ),
-    child: const Text(
-      'Ajukan Pinjam',
-      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-    ),
-  ),
-),
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: ajukanPinjam,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: primaryOrange,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                elevation: 0,
+              ),
+              child: const Text(
+                'Ajukan Pinjam',
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+              ),
+            ),
+          ),
         ],
       ),
     );

@@ -18,10 +18,7 @@ class PetugasPeminjamanPage extends StatefulWidget {
 
 class _PetugasPeminjamanPageState extends State<PetugasPeminjamanPage> {
   int _currentIndex = 0;
-
   final PeminjamanService _service = PeminjamanService();
-
-  // LIST LOKAL UNTUK DATA PEMINJAMAN
   List<Map<String, dynamic>> _allPeminjaman = [];
   bool _isLoading = true;
 
@@ -33,13 +30,18 @@ class _PetugasPeminjamanPageState extends State<PetugasPeminjamanPage> {
 
   Future<void> _loadPeminjaman() async {
     final data = await _service.getAllPeminjaman();
+    data.sort(
+      (a, b) => int.parse(
+        a['id_peminjaman'].toString(),
+      ).compareTo(int.parse(b['id_peminjaman'].toString())),
+    );
+
     setState(() {
       _allPeminjaman = data;
       _isLoading = false;
     });
   }
 
-  // ===================== UPDATE STATUS PEMINJAMAN =====================
   Future<void> _updateStatus(int id, String status) async {
     try {
       await Supabase.instance.client
@@ -47,7 +49,6 @@ class _PetugasPeminjamanPageState extends State<PetugasPeminjamanPage> {
           .update({'status': status})
           .eq('id_peminjaman', id);
 
-      // UPDATE LIST LOKAL LANGSUNG
       final index = _allPeminjaman.indexWhere((p) => p['id_peminjaman'] == id);
       if (index != -1) {
         setState(() {
@@ -75,11 +76,12 @@ class _PetugasPeminjamanPageState extends State<PetugasPeminjamanPage> {
       );
     }
 
-    // Memisahkan data
-    final menunggu =
-        _allPeminjaman.where((p) => p['status'] == 'Menunggu').toList();
-    final riwayat =
-        _allPeminjaman.where((p) => p['status'] != 'Menunggu').toList();
+    final menunggu = _allPeminjaman
+        .where((p) => p['status'] == 'Menunggu')
+        .toList();
+    final riwayat = _allPeminjaman
+        .where((p) => p['status'] != 'Menunggu')
+        .toList();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF6F6F6),
@@ -97,8 +99,6 @@ class _PetugasPeminjamanPageState extends State<PetugasPeminjamanPage> {
                 ),
               ),
               const SizedBox(height: 24),
-
-              // ======================= MENUNGGU =======================
               const Text(
                 'Menunggu Persetujuan',
                 style: TextStyle(
@@ -147,10 +147,7 @@ class _PetugasPeminjamanPageState extends State<PetugasPeminjamanPage> {
                   },
                 );
               }).toList(),
-
               const SizedBox(height: 30),
-
-              // ======================= RIWAYAT =======================
               const Text(
                 'Riwayat Peminjaman',
                 style: TextStyle(
@@ -205,6 +202,7 @@ class _PetugasPeminjamanPageState extends State<PetugasPeminjamanPage> {
           ),
         ),
       ),
+
       bottomNavigationBar: PetugasBottomNav(
         currentIndex: _currentIndex,
         onTap: (index) {

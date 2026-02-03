@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../services/pengembalian_service.dart'; // pastikan sudah ada
+import '../services/pengembalian_service.dart';
 import '../widgets/admin_bottom_nav.dart';
 import '../widgets/pengembalian/pengembalian_card.dart';
 import '../widgets/pengembalian/tambah_pengembalian_dialog.dart';
@@ -91,9 +91,8 @@ class _PengembalianScreenState extends State<PengembalianScreen> {
   void _showTambahPengembalianDialog() {
     showDialog(
       context: context,
-      builder: (context) => TambahPengembalianDialog(
-        onSuccess: _loadPengembalian, // refresh otomatis
-      ),
+      builder: (context) =>
+          TambahPengembalianDialog(onSuccess: _loadPengembalian),
     );
   }
 
@@ -154,7 +153,10 @@ class _PengembalianScreenState extends State<PengembalianScreen> {
                       ),
                       const SizedBox(height: 20),
 
-                      ..._pengembalianList.map((data) {
+                      ..._pengembalianList.asMap().entries.map((entry) {
+                        final index = entry.key + 1;
+                        final data = entry.value;
+
                         final peminjaman =
                             data['peminjaman'] as Map<String, dynamic>? ?? {};
                         final pengguna =
@@ -178,7 +180,7 @@ class _PengembalianScreenState extends State<PengembalianScreen> {
                         ).toList();
 
                         return PengembalianCard(
-                          id: data['id_pengembalian'].toString(),
+                          id: index.toString(), // ID urut 1,2,3,...
                           nama: pengguna['nama'] as String? ?? 'Unknown',
                           tglPinjam: _formatDate(peminjaman['tanggal_pinjam']),
                           tglKembali: _formatDate(
@@ -189,7 +191,6 @@ class _PengembalianScreenState extends State<PengembalianScreen> {
                           ),
                           kondisi: data['kondisi_setelah'] as String? ?? 'Baik',
                           catatan: data['catatan'] as String?,
-                          // items: items, // ← sekarang cocok
                           onRefresh: _loadPengembalian,
                         );
                       }).toList(),

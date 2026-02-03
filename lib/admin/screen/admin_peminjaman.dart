@@ -156,7 +156,10 @@ class _PeminjamanScreenState extends State<PeminjamanScreen> {
                       ),
                       const SizedBox(height: 16),
 
-                      ..._peminjamanList.map((data) {
+                      ..._peminjamanList.asMap().entries.map((entry) {
+                        final index = entry.key + 1;
+                        final data = entry.value;
+
                         final detailList =
                             data['detail_peminjaman'] as List<dynamic>? ?? [];
 
@@ -174,7 +177,7 @@ class _PeminjamanScreenState extends State<PeminjamanScreen> {
                         ).toList();
 
                         return PeminjamanCard(
-                          id: data['id_peminjaman'].toString(),
+                          id: index.toString(),
                           nama:
                               (data['pengguna'] as Map?)?['nama'] as String? ??
                               'Unknown',
@@ -196,7 +199,6 @@ class _PeminjamanScreenState extends State<PeminjamanScreen> {
                           onRefresh: _loadPeminjaman,
                         );
                       }).toList(),
-
                       const SizedBox(height: 100),
                     ],
                   ),

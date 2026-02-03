@@ -52,10 +52,18 @@ class KategoriCard extends StatelessWidget {
             children: [
               Expanded(
                 child: TextButton.icon(
-                  icon: const Icon(Icons.edit_outlined, size: 18, color: Colors.black87),
+                  icon: const Icon(
+                    Icons.edit_outlined,
+                    size: 18,
+                    color: Colors.black87,
+                  ),
                   label: const Text(
                     "Edit",
-                    style: TextStyle(fontSize: 14, color: Colors.black87, fontWeight: FontWeight.w600),
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.black87,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   style: TextButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 10),
@@ -71,10 +79,18 @@ class KategoriCard extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: TextButton.icon(
-                  icon: const Icon(Icons.delete_outline, size: 18, color: Colors.red),
+                  icon: const Icon(
+                    Icons.delete_outline,
+                    size: 18,
+                    color: Colors.red,
+                  ),
                   label: const Text(
                     "Hapus",
-                    style: TextStyle(fontSize: 14, color: Colors.red, fontWeight: FontWeight.w600),
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.red,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   style: TextButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 10),

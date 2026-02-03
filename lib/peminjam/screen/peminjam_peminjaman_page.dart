@@ -17,8 +17,14 @@ class PeminjamPeminjamanPage extends StatefulWidget {
 
 class _PeminjamPeminjamanPageState extends State<PeminjamPeminjamanPage> {
   int _currentIndex = 1;
-  String selectedStatus = 'Status';
+  String selectedStatus = 'status';
   List<Map<String, dynamic>> listPeminjaman = [];
+  List<Map<String, dynamic>> get filteredList {
+    if (selectedStatus == "status") return listPeminjaman;
+    return listPeminjaman
+        .where((item) => item["status"] == selectedStatus)
+        .toList();
+  }
 
   @override
   void initState() {
@@ -26,13 +32,11 @@ class _PeminjamPeminjamanPageState extends State<PeminjamPeminjamanPage> {
     _loadPeminjaman();
   }
 
-  // === LOAD PEMINJAMAN ===
   Future<void> _loadPeminjaman() async {
     try {
       final user = supabase.auth.currentUser;
       if (user == null) return;
 
-      // Ambil id_pengguna dari tabel pengguna
       final res = await supabase
           .from('pengguna')
           .select('id_pengguna')
@@ -41,7 +45,6 @@ class _PeminjamPeminjamanPageState extends State<PeminjamPeminjamanPage> {
       if (res == null) return;
       final int idPengguna = res['id_pengguna'];
 
-      // Ambil data peminjaman
       final data = await supabase
           .from('peminjaman')
           .select('''
@@ -76,9 +79,13 @@ class _PeminjamPeminjamanPageState extends State<PeminjamPeminjamanPage> {
             Expanded(
               child: listPeminjaman.isEmpty
                   ? const Center(child: Text("Tidak ada peminjaman"))
-                  : ListView(
+                  : ListView.builder(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
-                      children: listPeminjaman.map((item) {
+                      itemCount: filteredList.length,
+                      itemBuilder: (context, index) {
+                        final item = filteredList[index];
+                        final idDatabase = item["id_peminjaman"].toString();
+
                         String alat = "-";
                         final detail = item["detail_peminjaman"];
                         if (detail != null && detail.isNotEmpty) {
@@ -93,7 +100,7 @@ class _PeminjamPeminjamanPageState extends State<PeminjamPeminjamanPage> {
                         return Column(
                           children: [
                             PeminjamanPeminjamCard(
-                              id: item["id_peminjaman"].toString(),
+                              id: idDatabase,
                               nama: "Anda",
                               tanggalPinjam: item["tanggal_pinjam"].toString(),
                               tanggalKembali:
@@ -105,7 +112,7 @@ class _PeminjamPeminjamanPageState extends State<PeminjamPeminjamanPage> {
                             const SizedBox(height: 16),
                           ],
                         );
-                      }).toList(),
+                      },
                     ),
             ),
           ],
@@ -157,15 +164,18 @@ class _PeminjamPeminjamanPageState extends State<PeminjamPeminjamanPage> {
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
-          value: selectedStatus,
+          value: selectedStatus == "status" ? null : selectedStatus,
+          hint: const Text("status"),
           isExpanded: true,
           items: const [
-            DropdownMenuItem(value: 'Status', child: Text('Status')),
-            DropdownMenuItem(value: 'Dipinjam', child: Text('Dipinjam')),
+            DropdownMenuItem(value: 'dipinjam', child: Text('dipinjam')),
             DropdownMenuItem(
-              value: 'Dikembalikan',
-              child: Text('Dikembalikan'),
+              value: 'dikembalikan',
+              child: Text('dikembalikan'),
             ),
+            DropdownMenuItem(value: 'disetujui', child: Text('disetujui')),
+            DropdownMenuItem(value: 'Menunggu', child: Text('Menunggu')),
+            DropdownMenuItem(value: 'ditolak', child: Text('ditolak')),
           ],
           onChanged: (v) => setState(() => selectedStatus = v!),
         ),
@@ -228,224 +238,222 @@ class _PeminjamPeminjamanPageState extends State<PeminjamPeminjamanPage> {
     );
   }
 
-  // === AJUKAN PEMINJAMAN DIALOG ===
   void _showAjukanPeminjamanDialog(BuildContext context) {
-  DateTime? tglPinjam;
-  DateTime? tglKembali;
-  String selectedAlat = "Pilih alat";
-  List<Map<String, dynamic>> daftarAlat = [];
+    DateTime? tglPinjam;
+    DateTime? tglKembali;
+    String selectedAlat = "Pilih alat";
+    List<Map<String, dynamic>> daftarAlat = [];
 
-  // Load daftar alat dari Supabase
-  Future<void> loadAlat() async {
-    final res = await supabase
-        .from('alat')
-        .select('id_alat,nama_alat,jumlah_tersedia');
-    daftarAlat = List<Map<String, dynamic>>.from(res);
+    Future<void> loadAlat() async {
+      final res = await supabase
+          .from('alat')
+          .select('id_alat,nama_alat,jumlah_tersedia');
+      daftarAlat = List<Map<String, dynamic>>.from(res);
+    }
+
+    loadAlat();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (ctx, setStateDialog) {
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Text(
+                        "Ajukan peminjaman",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    Text("tgl. pinjam"),
+                    const SizedBox(height: 6),
+                    InkWell(
+                      onTap: () async {
+                        final picked = await showDatePicker(
+                          context: context,
+                          initialDate: tglPinjam ?? DateTime.now(),
+                          firstDate: DateTime(2023),
+                          lastDate: DateTime(2100),
+                        );
+                        if (picked != null) {
+                          setStateDialog(() => tglPinjam = picked);
+                        }
+                      },
+                      child: Container(
+                        height: 45,
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        alignment: Alignment.centerLeft,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFFFF7733)),
+                        ),
+                        child: Text(
+                          tglPinjam != null
+                              ? "${tglPinjam!.day}-${tglPinjam!.month}-${tglPinjam!.year}"
+                              : "Pilih tanggal",
+                          style: TextStyle(
+                            color: tglPinjam != null
+                                ? Colors.black
+                                : Colors.grey,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+
+                    Text("tgl. kembali"),
+                    const SizedBox(height: 6),
+                    InkWell(
+                      onTap: () async {
+                        final picked = await showDatePicker(
+                          context: context,
+                          initialDate: tglKembali ?? DateTime.now(),
+                          firstDate: DateTime(2023),
+                          lastDate: DateTime(2100),
+                        );
+                        if (picked != null) {
+                          setStateDialog(() => tglKembali = picked);
+                        }
+                      },
+                      child: Container(
+                        height: 45,
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        alignment: Alignment.centerLeft,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFFFF7733)),
+                        ),
+                        child: Text(
+                          tglKembali != null
+                              ? "${tglKembali!.day}-${tglKembali!.month}-${tglKembali!.year}"
+                              : "Pilih tanggal",
+                          style: TextStyle(
+                            color: tglKembali != null
+                                ? Colors.black
+                                : Colors.grey,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+
+                    Text("Pilih alat"),
+                    const SizedBox(height: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFFF7733)),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: selectedAlat,
+                          isExpanded: true,
+                          items: [
+                            const DropdownMenuItem(
+                              value: "Pilih alat",
+                              child: Text("Pilih alat"),
+                            ),
+                            ...daftarAlat.map(
+                              (a) => DropdownMenuItem(
+                                value: a["id_alat"].toString(),
+                                child: Text(
+                                  "${a["nama_alat"]} (Tersedia: ${a["jumlah_tersedia"]})",
+                                ),
+                              ),
+                            ),
+                          ],
+                          onChanged: (v) {
+                            setStateDialog(() => selectedAlat = v!);
+                          },
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 22),
+
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              if (tglPinjam == null ||
+                                  tglKembali == null ||
+                                  selectedAlat == "Pilih alat") {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text("Lengkapi semua data"),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                                return;
+                              }
+
+                              Navigator.pop(context);
+                              await _ajukanPeminjaman(
+                                "${tglPinjam!.year}-${tglPinjam!.month}-${tglPinjam!.day}",
+                                "${tglKembali!.year}-${tglKembali!.month}-${tglKembali!.day}",
+                                int.parse(selectedAlat),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFFF7733),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            child: const Text(
+                              "Ajukan",
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => Navigator.pop(context),
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: Color(0xFFFF7733)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            child: const Text(
+                              "Batal",
+                              style: TextStyle(color: Color(0xFFFF7733)),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
-  loadAlat();
-
-  showDialog(
-    context: context,
-    builder: (context) {
-      return StatefulBuilder(
-        builder: (ctx, setStateDialog) {
-          return Dialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Text(
-                      "Ajukan peminjaman",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // === PILIH TANGGAL PINJAM ===
-                  Text("tgl. pinjam"),
-                  const SizedBox(height: 6),
-                  InkWell(
-                    onTap: () async {
-                      final picked = await showDatePicker(
-                        context: context,
-                        initialDate: tglPinjam ?? DateTime.now(),
-                        firstDate: DateTime(2023),
-                        lastDate: DateTime(2100),
-                      );
-                      if (picked != null) {
-                        setStateDialog(() => tglPinjam = picked);
-                      }
-                    },
-                    child: Container(
-                      height: 45,
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      alignment: Alignment.centerLeft,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFFFF7733)),
-                      ),
-                      child: Text(
-                        tglPinjam != null
-                            ? "${tglPinjam!.day}-${tglPinjam!.month}-${tglPinjam!.year}"
-                            : "Pilih tanggal",
-                        style: TextStyle(
-                          color: tglPinjam != null ? Colors.black : Colors.grey,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-
-                  // === PILIH TANGGAL KEMBALI ===
-                  Text("tgl. kembali"),
-                  const SizedBox(height: 6),
-                  InkWell(
-                    onTap: () async {
-                      final picked = await showDatePicker(
-                        context: context,
-                        initialDate: tglKembali ?? DateTime.now(),
-                        firstDate: DateTime(2023),
-                        lastDate: DateTime(2100),
-                      );
-                      if (picked != null) {
-                        setStateDialog(() => tglKembali = picked);
-                      }
-                    },
-                    child: Container(
-                      height: 45,
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      alignment: Alignment.centerLeft,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFFFF7733)),
-                      ),
-                      child: Text(
-                        tglKembali != null
-                            ? "${tglKembali!.day}-${tglKembali!.month}-${tglKembali!.year}"
-                            : "Pilih tanggal",
-                        style: TextStyle(
-                          color: tglKembali != null ? Colors.black : Colors.grey,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-
-                  // === DROPDOWN PILIH ALAT ===
-                  Text("Pilih alat"),
-                  const SizedBox(height: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFFFF7733)),
-                    ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        value: selectedAlat,
-                        isExpanded: true,
-                        items: [
-                          const DropdownMenuItem(
-                            value: "Pilih alat",
-                            child: Text("Pilih alat"),
-                          ),
-                          ...daftarAlat.map(
-                            (a) => DropdownMenuItem(
-                              value: a["id_alat"].toString(),
-                              child: Text(
-                                  "${a["nama_alat"]} (Tersedia: ${a["jumlah_tersedia"]})"),
-                            ),
-                          ),
-                        ],
-                        onChanged: (v) {
-                          setStateDialog(() => selectedAlat = v!);
-                        },
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 22),
-
-                  // === BUTTONS ===
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () async {
-                            if (tglPinjam == null ||
-                                tglKembali == null ||
-                                selectedAlat == "Pilih alat") {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text("Lengkapi semua data"),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
-                              return;
-                            }
-
-                            Navigator.pop(context);
-                            await _ajukanPeminjaman(
-                              "${tglPinjam!.year}-${tglPinjam!.month}-${tglPinjam!.day}",
-                              "${tglKembali!.year}-${tglKembali!.month}-${tglKembali!.day}",
-                              int.parse(selectedAlat),
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFFF7733),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          child: const Text(
-                            "Ajukan",
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () => Navigator.pop(context),
-                          style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: Color(0xFFFF7733)),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          child: const Text(
-                            "Batal",
-                            style: TextStyle(color: Color(0xFFFF7733)),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      );
-    },
-  );
-}
-
-  // AJUKAN PEMINJAMAN KE DATABASE
   Future<void> _ajukanPeminjaman(
     String tPinjam,
     String tKembali,
@@ -453,7 +461,6 @@ class _PeminjamPeminjamanPageState extends State<PeminjamPeminjamanPage> {
   ) async {
     try {
       final user = supabase.auth.currentUser!;
-      // Ambil id_pengguna dari tabel pengguna
       final res = await supabase
           .from('pengguna')
           .select('id_pengguna')
@@ -461,7 +468,6 @@ class _PeminjamPeminjamanPageState extends State<PeminjamPeminjamanPage> {
           .single();
       final int idPengguna = res['id_pengguna'];
 
-      // Insert ke peminjaman
       final insertPeminjaman = await supabase
           .from('peminjaman')
           .insert({
@@ -474,20 +480,17 @@ class _PeminjamPeminjamanPageState extends State<PeminjamPeminjamanPage> {
           .single();
       final idPeminjaman = insertPeminjaman["id_peminjaman"];
 
-      // Insert ke detail_peminjaman
       await supabase.from('detail_peminjaman').insert({
         'id_peminjaman': idPeminjaman,
         'id_alat': idAlat,
         'jumlah': 1,
       });
 
-      // Kurangi jumlah tersedia
       await supabase.rpc(
         "kurangi_jumlah_tersedia",
         params: {"alatid": idAlat, "jumlahpinjam": 1},
       );
 
-      // Log aktivitas
       await supabase.from('log_aktivitas').insert({
         'id_pengguna': idPengguna,
         'aktivitas':

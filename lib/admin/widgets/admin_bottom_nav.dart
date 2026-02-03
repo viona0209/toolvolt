@@ -23,25 +23,25 @@ class AdminBottomNav extends StatelessWidget {
       showSelectedLabels: false,
       showUnselectedLabels: false,
       items: const [
-        // 0 — ALAT 
+        // 0 — ALAT
         BottomNavigationBarItem(
           icon: Icon(Icons.build_outlined),
           label: 'Alat',
         ),
 
-        // 1 — PEMINJAMAN 
+        // 1 — PEMINJAMAN
         BottomNavigationBarItem(
           icon: Icon(Icons.assignment_outlined),
           label: 'Peminjaman',
         ),
 
-        // 2 — DASHBOARD 
+        // 2 — DASHBOARD
         BottomNavigationBarItem(
           icon: Icon(Icons.dashboard_outlined),
           label: 'Dashboard',
         ),
 
-        // 3 — PENGEMBALIAN 
+        // 3 — PENGEMBALIAN
         BottomNavigationBarItem(
           icon: Icon(Icons.timer_outlined),
           label: 'Pengembalian',

@@ -3,7 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 final supabase = Supabase.instance.client;
 
 class PeminjamanService {
-  // Ambil semua data peminjaman + join pengguna + detail
+  //mengambil semua data peminjaman, join pengguna, detail
   Future<List<Map<String, dynamic>>> getAllPeminjaman() async {
     try {
       final response = await supabase
@@ -29,7 +29,7 @@ class PeminjamanService {
     }
   }
 
-  // Tambah peminjaman & detail
+  //menambah peminjaman & detail
   Future<bool> tambahPeminjaman({
     required int idPengguna,
     required DateTime tanggalPinjam,
@@ -43,10 +43,7 @@ class PeminjamanService {
             'id_pengguna': idPengguna,
             'tanggal_pinjam': tanggalPinjam.toIso8601String().split('T')[0],
             'tanggal_kembali': tanggalKembali?.toIso8601String().split('T')[0],
-
-            // 🔥 STATUS BARU DI SINI!
-            'status': 'menunggu',   // <-- Sekarang menunggu persetujuan petugas
-
+            'status': 'menunggu',
           })
           .select('id_peminjaman')
           .single();

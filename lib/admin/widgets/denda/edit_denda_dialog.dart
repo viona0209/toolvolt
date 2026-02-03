@@ -62,7 +62,9 @@ class EditDendaDialog extends StatelessWidget {
                     side: const BorderSide(color: primaryOrange, width: 1.5),
                     foregroundColor: primaryOrange,
                     minimumSize: const Size(110, 46),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   child: const Text('Batal'),
                 ),
@@ -70,7 +72,10 @@ class EditDendaDialog extends StatelessWidget {
                 ElevatedButton(
                   onPressed: () {
                     final namaBaru = namaController.text.trim();
-                    final biayaText = biayaController.text.trim().replaceAll('.', '');
+                    final biayaText = biayaController.text.trim().replaceAll(
+                      '.',
+                      '',
+                    );
                     final biayaBaru = int.tryParse(biayaText) ?? 0;
 
                     if (namaBaru.isNotEmpty && biayaBaru > 0) {
@@ -78,7 +83,9 @@ class EditDendaDialog extends StatelessWidget {
                       Navigator.pop(context);
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Lengkapi data dengan benar')),
+                        const SnackBar(
+                          content: Text('Lengkapi data dengan benar'),
+                        ),
                       );
                     }
                   },
@@ -86,7 +93,9 @@ class EditDendaDialog extends StatelessWidget {
                     backgroundColor: primaryOrange,
                     foregroundColor: Colors.white,
                     minimumSize: const Size(130, 46),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   child: const Text('Simpan'),
                 ),
@@ -99,25 +108,25 @@ class EditDendaDialog extends StatelessWidget {
   }
 
   Widget _buildLabel(String text) => Padding(
-        padding: const EdgeInsets.only(bottom: 6),
-        child: Align(
-          alignment: Alignment.centerLeft,
-          child: Text(
-            text,
-            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-          ),
-        ),
-      );
+    padding: const EdgeInsets.only(bottom: 6),
+    child: Align(
+      alignment: Alignment.centerLeft,
+      child: Text(
+        text,
+        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+      ),
+    ),
+  );
 
   InputDecoration _inputDecoration() => InputDecoration(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFFF7733)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFFF7733), width: 2),
-        ),
-      );
+    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(color: Color(0xFFFF7733)),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(color: Color(0xFFFF7733), width: 2),
+    ),
+  );
 }

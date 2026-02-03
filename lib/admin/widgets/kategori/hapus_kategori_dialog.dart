@@ -45,10 +45,15 @@ class HapusKategoriDialog extends StatelessWidget {
                 OutlinedButton(
                   onPressed: () => Navigator.pop(context),
                   style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Color(0xFFFF7733), width: 1.5),
+                    side: const BorderSide(
+                      color: Color(0xFFFF7733),
+                      width: 1.5,
+                    ),
                     foregroundColor: const Color(0xFFFF7733),
                     minimumSize: const Size(110, 46),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   child: const Text('Batal'),
                 ),
@@ -62,7 +67,9 @@ class HapusKategoriDialog extends StatelessWidget {
                     backgroundColor: Colors.red,
                     foregroundColor: Colors.white,
                     minimumSize: const Size(130, 46),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   child: const Text('Hapus'),
                 ),

@@ -35,24 +35,18 @@ Future<bool?> showEditPenggunaDialog(
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 24),
-
-                // Nama
                 labelWidget("Nama"),
                 TextField(
                   controller: namaController,
                   decoration: inputDecoration(),
                 ),
                 const SizedBox(height: 16),
-
-                // Username
                 labelWidget("Username"),
                 TextField(
                   controller: usernameController,
                   decoration: inputDecoration(),
                 ),
                 const SizedBox(height: 16),
-
-                // Role
                 labelWidget("Role"),
                 DropdownButtonFormField<String>(
                   value: selectedRole,
@@ -60,13 +54,14 @@ Future<bool?> showEditPenggunaDialog(
                   items: const [
                     DropdownMenuItem(value: 'admin', child: Text('Admin')),
                     DropdownMenuItem(value: 'petugas', child: Text('Petugas')),
-                    DropdownMenuItem(value: 'peminjam', child: Text('Peminjam')),
+                    DropdownMenuItem(
+                      value: 'peminjam',
+                      child: Text('Peminjam'),
+                    ),
                   ],
                   onChanged: (val) => selectedRole = val,
                 ),
                 const SizedBox(height: 16),
-
-                // Info
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
@@ -87,10 +82,7 @@ Future<bool?> showEditPenggunaDialog(
                     ],
                   ),
                 ),
-
                 const SizedBox(height: 24),
-
-                // Tombol aksi
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -125,13 +117,11 @@ Future<bool?> showEditPenggunaDialog(
                           return;
                         }
 
-                        // Show loading
                         showDialog(
                           context: dialogContext,
                           barrierDismissible: false,
-                          builder: (ctx) => const Center(
-                            child: CircularProgressIndicator(),
-                          ),
+                          builder: (ctx) =>
+                              const Center(child: CircularProgressIndicator()),
                         );
 
                         final service = PenggunaService();
@@ -142,7 +132,6 @@ Future<bool?> showEditPenggunaDialog(
                           role: selectedRole ?? role,
                         );
 
-                        // Hide loading
                         Navigator.pop(dialogContext);
 
                         if (res == null) {

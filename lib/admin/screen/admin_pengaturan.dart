@@ -72,7 +72,7 @@ class _PengaturanPageState extends State<PengaturanPage> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, false), 
+            onPressed: () => Navigator.pop(context, false),
             child: const Text('Tidak', style: TextStyle(color: Colors.grey)),
           ),
           TextButton(
@@ -89,11 +89,8 @@ class _PengaturanPageState extends State<PengaturanPage> {
     if (confirm == true) {
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(
-          builder: (_) => const LoginScreen(),
-        ),
-        (route) =>
-            false,
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        (route) => false,
       );
     }
   }
@@ -192,7 +189,9 @@ class _PengaturanPageState extends State<PengaturanPage> {
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (_) => const DendaScreen()),
+                          MaterialPageRoute(
+                            builder: (_) => const DendaScreen(),
+                          ),
                         );
                       },
                     ),
@@ -223,8 +222,7 @@ class _PengaturanPageState extends State<PengaturanPage> {
                     PengaturanMenu(
                       icon: Icons.logout,
                       title: "Logout",
-                      onTap:
-                          _showLogoutConfirmation,
+                      onTap: _showLogoutConfirmation,
                     ),
                   ],
                 ),

@@ -19,7 +19,7 @@ class _PeminjamListAlatPageState extends State<PeminjamListAlatPage> {
   static const Color primaryColor = Color(0xFFFF8E01);
 
   final TextEditingController searchController = TextEditingController();
-  String selectedKategori = 'Kategori';
+  String selectedKategori = 'kategori';
 
   final AlatService _alatService = AlatService();
   final supabase = Supabase.instance.client;
@@ -53,7 +53,7 @@ class _PeminjamListAlatPageState extends State<PeminjamListAlatPage> {
         final kategori = item['kategori']['nama_kategori'].toString();
 
         final matchSearch = nama.contains(keyword);
-        final matchKategori = selectedKategori == 'Kategori'
+        final matchKategori = selectedKategori == 'kategori'
             ? true
             : kategori == selectedKategori;
 
@@ -62,10 +62,8 @@ class _PeminjamListAlatPageState extends State<PeminjamListAlatPage> {
     });
   }
 
-  // ==================== AJUKAN PEMINJAMAN ====================
   Future<void> ajukanPeminjaman(int idAlat, {int jumlah = 1}) async {
     try {
-      // Ambil session user Supabase
       final session = supabase.auth.currentSession;
       if (session == null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -77,7 +75,6 @@ class _PeminjamListAlatPageState extends State<PeminjamListAlatPage> {
         return;
       }
 
-      // Ambil id_pengguna dari tabel pengguna
       final userData = await supabase
           .from('pengguna')
           .select('id_pengguna')
@@ -86,20 +83,18 @@ class _PeminjamListAlatPageState extends State<PeminjamListAlatPage> {
 
       final int idPeminjam = userData['id_pengguna'];
 
-      // 1️⃣ Insert ke peminjaman
       final peminjaman = await supabase
           .from('peminjaman')
           .insert({
             'id_pengguna': idPeminjam,
             'tanggal_pinjam': DateTime.now().toIso8601String(),
-            'status': 'Menunggu', // status awal
+            'status': 'Menunggu',
           })
           .select()
-          .single(); // ambil row baru
+          .single();
 
       final int idPeminjaman = peminjaman['id_peminjaman'];
 
-      // 2️⃣ Insert ke detail_peminjaman
       await supabase.from('detail_peminjaman').insert({
         'id_peminjaman': idPeminjaman,
         'id_alat': idAlat,
@@ -135,7 +130,6 @@ class _PeminjamListAlatPageState extends State<PeminjamListAlatPage> {
       body: SafeArea(
         child: Column(
           children: [
-            // ================= HEADER =================
             Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -148,8 +142,6 @@ class _PeminjamListAlatPageState extends State<PeminjamListAlatPage> {
                     ),
                   ),
                   const SizedBox(height: 25),
-
-                  // ================= SEARCH & FILTER =================
                   Row(
                     children: [
                       Expanded(
@@ -191,20 +183,24 @@ class _PeminjamListAlatPageState extends State<PeminjamListAlatPage> {
                             value: selectedKategori,
                             items: const [
                               DropdownMenuItem(
-                                value: 'Kategori',
-                                child: Text('Kategori'),
+                                value: 'kategori',
+                                child: Text('kategori'),
                               ),
                               DropdownMenuItem(
-                                value: 'Alat Ukur',
-                                child: Text('Alat Ukur'),
+                                value: 'Peralatan Tangan',
+                                child: Text('Peralatan Tangan'),
                               ),
                               DropdownMenuItem(
-                                value: 'Alat Tangan',
-                                child: Text('Alat Tangan'),
+                                value: 'Peralatan Ukur',
+                                child: Text('Peralatan Ukur'),
                               ),
                               DropdownMenuItem(
-                                value: 'Alat Listrik',
-                                child: Text('Alat Listrik'),
+                                value: 'Peralatan Soldering',
+                                child: Text('Peralatan Soldering'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'Peralatan Listrik',
+                                child: Text('Peralatan Listrik'),
                               ),
                             ],
                             onChanged: (value) {
@@ -221,37 +217,32 @@ class _PeminjamListAlatPageState extends State<PeminjamListAlatPage> {
                 ],
               ),
             ),
-
-            // ================= LIST DATA =================
             Expanded(
               child: isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : filteredList.isEmpty
-                      ? const Center(child: Text("Tidak ada alat ditemukan"))
-                      : ListView.builder(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          itemCount: filteredList.length,
-                          itemBuilder: (context, index) {
-                            final alat = filteredList[index];
+                  ? const Center(child: Text("Tidak ada alat ditemukan"))
+                  : ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      itemCount: filteredList.length,
+                      itemBuilder: (context, index) {
+                        final alat = filteredList[index];
 
-                            return AlatCard(
-                              namaAlat: alat['nama_alat'],
-                              kategori: alat['kategori']['nama_kategori'],
-                              kondisi: alat['kondisi'] ?? 'Baik',
-                              imageAsset: alat['gambar_alat'],
-                              jumlahKondisiBaik: alat['jumlah_tersedia'],
-                              totalItem: alat['jumlah_total'],
-                              ajukanPinjam: () =>
-                                  ajukanPeminjaman(alat['id_alat']),
-                            );
-                          },
-                        ),
+                        return AlatCard(
+                          namaAlat: alat['nama_alat'],
+                          kategori: alat['kategori']['nama_kategori'],
+                          kondisi: 'Baik',
+                          imageAsset: alat['gambar_alat'],
+                          jumlahKondisiBaik: alat['jumlah_tersedia'],
+                          totalItem: alat['jumlah_total'],
+                          ajukanPinjam: () => ajukanPeminjaman(alat['id_alat']),
+                        );
+                      },
+                    ),
             ),
           ],
         ),
       ),
-
-      // ================= NAVIGATION =================
       bottomNavigationBar: PeminjamBottomNav(
         currentIndex: _currentIndex,
         onTap: (index) {

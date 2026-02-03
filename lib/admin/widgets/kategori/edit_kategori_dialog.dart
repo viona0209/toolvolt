@@ -44,10 +44,15 @@ class EditKategoriDialog extends StatelessWidget {
                 OutlinedButton(
                   onPressed: () => Navigator.pop(context),
                   style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Color(0xFFFF7733), width: 1.5),
+                    side: const BorderSide(
+                      color: Color(0xFFFF7733),
+                      width: 1.5,
+                    ),
                     foregroundColor: const Color(0xFFFF7733),
                     minimumSize: const Size(110, 46),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   child: const Text('Batal'),
                 ),
@@ -64,7 +69,9 @@ class EditKategoriDialog extends StatelessWidget {
                     backgroundColor: const Color(0xFFFF7733),
                     foregroundColor: Colors.white,
                     minimumSize: const Size(130, 46),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   child: const Text('Simpan'),
                 ),
@@ -77,25 +84,25 @@ class EditKategoriDialog extends StatelessWidget {
   }
 
   Widget _buildLabel(String text) => Padding(
-        padding: const EdgeInsets.only(bottom: 6),
-        child: Align(
-          alignment: Alignment.centerLeft,
-          child: Text(
-            text,
-            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-          ),
-        ),
-      );
+    padding: const EdgeInsets.only(bottom: 6),
+    child: Align(
+      alignment: Alignment.centerLeft,
+      child: Text(
+        text,
+        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+      ),
+    ),
+  );
 
   InputDecoration _inputDecoration() => InputDecoration(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFFF7733)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFFF7733), width: 2),
-        ),
-      );
+    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(color: Color(0xFFFF7733)),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(color: Color(0xFFFF7733), width: 2),
+    ),
+  );
 }

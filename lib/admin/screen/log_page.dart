@@ -162,7 +162,6 @@ class _LogAktivitasPageState extends State<LogAktivitasPage> {
                 height: 300,
                 child: Row(
                   children: [
-                    // KOTAK 1 — TOTAL AKTIVITAS
                     Expanded(
                       child: Container(
                         padding: const EdgeInsets.all(16),
@@ -201,7 +200,6 @@ class _LogAktivitasPageState extends State<LogAktivitasPage> {
 
                     const SizedBox(width: 16),
 
-                    // KOTAK 2 & 3
                     Expanded(
                       child: Column(
                         children: [

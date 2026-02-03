@@ -22,10 +22,7 @@ class ActivityItem extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: const Color(0xFFD8D8D8),
-          width: 1,
-        ),
+        border: Border.all(color: const Color(0xFFD8D8D8), width: 1),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
@@ -64,10 +61,7 @@ class ActivityItem extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   user,
-                  style: const TextStyle(
-                    color: Colors.grey,
-                    fontSize: 13,
-                  ),
+                  style: const TextStyle(color: Colors.grey, fontSize: 13),
                 ),
               ],
             ),
@@ -86,10 +80,7 @@ class ActivityItem extends StatelessWidget {
               const SizedBox(height: 2),
               Text(
                 date,
-                style: const TextStyle(
-                  color: Colors.grey,
-                  fontSize: 12,
-                ),
+                style: const TextStyle(color: Colors.grey, fontSize: 12),
               ),
             ],
           ),

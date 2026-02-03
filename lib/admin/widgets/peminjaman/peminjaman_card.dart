@@ -288,14 +288,12 @@ class _PeminjamanCardState extends State<PeminjamanCard> {
       tglKembali = DateTime.now().add(const Duration(days: 7));
     }
 
-    // Items awal
     if (widget.items != null && widget.items!.isNotEmpty) {
       editableItems = List.from(widget.items!);
     } else if (widget.alat != null && widget.jumlah != null) {
       editableItems.add({'nama_alat': widget.alat, 'jumlah': widget.jumlah});
     }
 
-    // Load data dari Supabase
     try {
       final penggunaRes = await supabase
           .from('pengguna')
@@ -351,10 +349,6 @@ class _PeminjamanCardState extends State<PeminjamanCard> {
                         ),
                       ),
                       const SizedBox(height: 24),
-
-                      // ============================
-                      //         DROPDOWN USER
-                      // ============================
                       const Text(
                         'Nama Peminjam',
                         style: TextStyle(fontWeight: FontWeight.w600),
@@ -369,9 +363,7 @@ class _PeminjamanCardState extends State<PeminjamanCard> {
                         ),
                         items: daftarPengguna.map((p) {
                           return DropdownMenuItem<int?>(
-                            value:
-                                p['id_pengguna']
-                                    as int?, // FIX: casting ke int?
+                            value: p['id_pengguna'] as int?,
                             child: Text(p['nama'] ?? 'Tidak diketahui'),
                           );
                         }).toList(),
@@ -380,10 +372,6 @@ class _PeminjamanCardState extends State<PeminjamanCard> {
                       ),
 
                       const SizedBox(height: 16),
-
-                      // ============================
-                      //        LIST ITEM ALAT
-                      // ============================
                       const Text(
                         'Alat yang Dipinjam',
                         style: TextStyle(fontWeight: FontWeight.w600),
@@ -466,8 +454,6 @@ class _PeminjamanCardState extends State<PeminjamanCard> {
                           ),
                         );
                       }),
-
-                      // Tombol tambah alat
                       TextButton.icon(
                         onPressed: () {
                           if (daftarAlat.isNotEmpty) {
@@ -484,10 +470,6 @@ class _PeminjamanCardState extends State<PeminjamanCard> {
                         label: const Text('Tambah Alat'),
                       ),
                       const SizedBox(height: 16),
-
-                      // ============================
-                      //        TANGGAL PINJAM
-                      // ============================
                       Row(
                         children: [
                           Expanded(
@@ -528,10 +510,6 @@ class _PeminjamanCardState extends State<PeminjamanCard> {
                             ),
                           ),
                           const SizedBox(width: 12),
-
-                          // ============================
-                          //        TANGGAL KEMBALI
-                          // ============================
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -572,10 +550,6 @@ class _PeminjamanCardState extends State<PeminjamanCard> {
                         ],
                       ),
                       const SizedBox(height: 32),
-
-                      // ============================
-                      //      BUTTON SIMPAN / BATAL
-                      // ============================
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -602,7 +576,6 @@ class _PeminjamanCardState extends State<PeminjamanCard> {
                               }
 
                               try {
-                                // UPDATE peminjaman
                                 await supabase
                                     .from('peminjaman')
                                     .update({
@@ -616,13 +589,11 @@ class _PeminjamanCardState extends State<PeminjamanCard> {
                                     })
                                     .eq('id_peminjaman', idPeminjaman);
 
-                                // HAPUS detail lama
                                 await supabase
                                     .from('detail_peminjaman')
                                     .delete()
                                     .eq('id_peminjaman', idPeminjaman);
 
-                                // INSERT detail baru
                                 for (var item in editableItems) {
                                   final alat = daftarAlat.firstWhere(
                                     (a) => a['nama_alat'] == item['nama_alat'],
@@ -694,27 +665,22 @@ class _PeminjamanCardState extends State<PeminjamanCard> {
 
     if (confirm == true && mounted) {
       try {
-        // Hapus detail dulu (karena FK)
         await supabase
             .from('detail_peminjaman')
             .delete()
             .eq('id_peminjaman', idPeminjaman);
 
-        // Hapus peminjaman
         await supabase
             .from('peminjaman')
             .delete()
             .eq('id_peminjaman', idPeminjaman);
 
         widget.onRefresh?.call();
-
-        // 🔥 Top Snackbar Success
         showTopSnackBar(
           Overlay.of(context),
           const CustomSnackBar.success(message: "Peminjaman berhasil dihapus"),
         );
       } catch (e) {
-        // 🔥 Top Snackbar Error
         showTopSnackBar(
           Overlay.of(context),
           CustomSnackBar.error(message: "Gagal hapus: $e"),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:toolvolt/petugas/service/pengembalian_service.dart';
 import '../widgets/pengembalian_card.dart';
 import '../widgets/riwayat_pengembalian_card.dart';
@@ -6,6 +7,8 @@ import '../widgets/petugas_bottom_nav.dart';
 import 'petugas_dashboard.dart';
 import 'petugas_laporan_page.dart';
 import 'petugas_peminjaman_page.dart';
+
+final supabase = Supabase.instance.client;
 
 class PetugasPengembalianPage extends StatefulWidget {
   const PetugasPengembalianPage({super.key});
@@ -22,27 +25,70 @@ class _PetugasPengembalianPageState extends State<PetugasPengembalianPage> {
 
   List<Map<String, dynamic>> belumKembali = [];
   List<Map<String, dynamic>> riwayat = [];
-
+  int? currentUserId;
   bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    loadData();
+    initPage();
+  }
+
+  Future<void> initPage() async {
+    await getCurrentUserId(); // ambil ID petugas yang login
+    await loadData();
+  }
+
+  // Ambil ID pengguna login dari tabel pengguna berdasarkan auth_id Supabase
+  Future<void> getCurrentUserId() async {
+    final currentUser = supabase.auth.currentUser;
+
+    if (currentUser != null) {
+      try {
+        final userData = await supabase
+            .from('pengguna')
+            .select('id_pengguna')
+            .eq('auth_id', currentUser.id)
+            .single();
+
+        setState(() {
+          currentUserId = userData['id_pengguna'];
+        });
+      } catch (e) {
+        print('Gagal ambil currentUserId: $e');
+      }
+    }
   }
 
   Future<void> loadData() async {
     setState(() => isLoading = true);
 
-    final dataBelum = await _service.getBelumDikembalikan();
+    try {
+      final dataBelum = await _service.getBelumDikembalikan();
+      final dataRiwayat = await _service.getRiwayatPengembalian();
 
-    final dataRiwayat = await _service.getRiwayatPengembalian();
+      // urutkan ascending
+      dataBelum.sort(
+        (a, b) => a['id_peminjaman'].toString().compareTo(
+              b['id_peminjaman'].toString(),
+            ),
+      );
 
-    setState(() {
-      belumKembali = dataBelum;
-      riwayat = dataRiwayat;
-      isLoading = false;
-    });
+      dataRiwayat.sort(
+        (a, b) => a['id_pengembalian'].toString().compareTo(
+              b['id_pengembalian'].toString(),
+            ),
+      );
+
+      setState(() {
+        belumKembali = dataBelum;
+        riwayat = dataRiwayat;
+        isLoading = false;
+      });
+    } catch (e) {
+      print('Gagal load data: $e');
+      setState(() => isLoading = false);
+    }
   }
 
   @override
@@ -80,19 +126,23 @@ class _PetugasPengembalianPageState extends State<PetugasPengembalianPage> {
 
                       const SizedBox(height: 12),
 
-                      /// LIST PEMINJAMAN YANG BELUM MENGEMBALIKAN
-                      for (var item in belumKembali)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: PengembalianCard(
-                            id: item['id_peminjaman'].toString(),
-                            nama: item['pengguna']['nama'] ?? '-',
-                            tanggalPinjam:
-                                item['tanggal_pinjam']?.toString() ?? '-',
-                            onUpdated:
-                                loadData, // refresh otomatis setelah pengembalian
-                          ),
-                        ),
+                      // pastikan currentUserId sudah tersedia
+                      if (currentUserId != null)
+                        for (var item in belumKembali)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: PengembalianCard(
+                              id: item['id_peminjaman'].toString(),
+                              nama: item['pengguna']['nama'] ?? '-',
+                              tanggalPinjam:
+                                  item['tanggal_pinjam']?.toString() ?? '-',
+                              idPengguna: currentUserId!, // pakai !
+                              onUpdated: loadData,
+                            ),
+                          )
+                      else
+                        const Center(
+                            child: Text('Sedang memuat user login...')),
 
                       const SizedBox(height: 25),
 
@@ -106,19 +156,16 @@ class _PetugasPengembalianPageState extends State<PetugasPengembalianPage> {
 
                       const SizedBox(height: 12),
 
-                      /// LIST RIWAYAT
                       for (var r in riwayat)
                         Padding(
                           padding: const EdgeInsets.only(bottom: 12),
                           child: RiwayatPengembalianCard(
                             id: r['id_pengembalian'].toString(),
                             nama: r['peminjaman']['pengguna']['nama'] ?? '-',
-                            tanggalKembali: r['tanggal_pengembalian']!
-                                .toString(),
+                            tanggalKembali:
+                                r['tanggal_pengembalian'].toString(),
                             denda: r['total_denda'].toString(),
-                            kondisiSetelah:
-                                r['kondisi_setelah'] ??
-                                '-', // ambil dari Supabase
+                            kondisiSetelah: r['kondisi_setelah'] ?? '-',
                           ),
                         ),
                     ],
@@ -160,7 +207,6 @@ class _PetugasPengembalianPageState extends State<PetugasPengembalianPage> {
                 context,
                 MaterialPageRoute(builder: (_) => const PetugasLaporanPage()),
               );
-              break;
           }
         },
       ),

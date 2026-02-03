@@ -9,10 +9,7 @@ final supabase = Supabase.instance.client;
 class TambahPeminjamanDialog extends StatefulWidget {
   final VoidCallback onSuccess;
 
-  const TambahPeminjamanDialog({
-    super.key,
-    required this.onSuccess,
-  });
+  const TambahPeminjamanDialog({super.key, required this.onSuccess});
 
   @override
   State<TambahPeminjamanDialog> createState() => _TambahPeminjamanDialogState();
@@ -21,15 +18,12 @@ class TambahPeminjamanDialog extends StatefulWidget {
 class _TambahPeminjamanDialogState extends State<TambahPeminjamanDialog> {
   List<Map<String, dynamic>> daftarPengguna = [];
   List<Map<String, dynamic>> daftarAlat = [];
-
   int? selectedPenggunaId;
   final List<Map<String, dynamic>> selectedItems = [];
-
   DateTime? tanggalPinjam;
   DateTime? tanggalKembali;
-
-  bool isLoading = true; // untuk loading saat ambil data
-  bool isSubmitting = false; // untuk loading saat submit form
+  bool isLoading = true;
+  bool isSubmitting = false;
 
   static const primaryOrange = Color(0xFFFF8E01);
 
@@ -65,9 +59,7 @@ class _TambahPeminjamanDialogState extends State<TambahPeminjamanDialog> {
         setState(() => isLoading = false);
         showTopSnackBar(
           Overlay.of(context),
-          CustomSnackBar.error(
-            message: 'Gagal memuat data: $e',
-          ),
+          CustomSnackBar.error(message: 'Gagal memuat data: $e'),
         );
       }
     }
@@ -120,7 +112,6 @@ class _TambahPeminjamanDialogState extends State<TambahPeminjamanDialog> {
       isSubmitting = true;
     });
 
-    // Validasi form
     String? errorMsg;
     if (selectedPenggunaId == null) {
       errorMsg = 'Pilih peminjam terlebih dahulu';
@@ -141,9 +132,7 @@ class _TambahPeminjamanDialogState extends State<TambahPeminjamanDialog> {
       setState(() => isSubmitting = false);
       showTopSnackBar(
         Overlay.of(context),
-        CustomSnackBar.error(
-          message: errorMsg,
-        ),
+        CustomSnackBar.error(message: errorMsg),
       );
       return;
     }
@@ -175,9 +164,7 @@ class _TambahPeminjamanDialogState extends State<TambahPeminjamanDialog> {
 
       showTopSnackBar(
         Overlay.of(context),
-        CustomSnackBar.success(
-          message: 'Peminjaman berhasil ditambahkan',
-        ),
+        CustomSnackBar.success(message: 'Peminjaman berhasil ditambahkan'),
       );
 
       Future.delayed(const Duration(seconds: 2), () {
@@ -187,9 +174,7 @@ class _TambahPeminjamanDialogState extends State<TambahPeminjamanDialog> {
       setState(() => isSubmitting = false);
       showTopSnackBar(
         Overlay.of(context),
-        CustomSnackBar.error(
-          message: 'Gagal menyimpan: $e',
-        ),
+        CustomSnackBar.error(message: 'Gagal menyimpan: $e'),
       );
     }
   }
@@ -217,7 +202,9 @@ class _TambahPeminjamanDialogState extends State<TambahPeminjamanDialog> {
         child: isSubmitting
             ? SizedBox(
                 height: 200,
-                child: Center(child: CircularProgressIndicator(color: primaryOrange)),
+                child: Center(
+                  child: CircularProgressIndicator(color: primaryOrange),
+                ),
               )
             : _buildForm(context),
       ),
@@ -239,7 +226,6 @@ class _TambahPeminjamanDialogState extends State<TambahPeminjamanDialog> {
             ),
           ),
           const SizedBox(height: 28),
-          // Peminjam
           _buildSectionLabel('Peminjam'),
           DropdownButtonFormField<int?>(
             value: selectedPenggunaId,
@@ -255,8 +241,6 @@ class _TambahPeminjamanDialogState extends State<TambahPeminjamanDialog> {
             onChanged: (val) => setState(() => selectedPenggunaId = val),
           ),
           const SizedBox(height: 24),
-
-          // Daftar Alat
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -264,8 +248,15 @@ class _TambahPeminjamanDialogState extends State<TambahPeminjamanDialog> {
               if (selectedItems.length < 5)
                 TextButton.icon(
                   onPressed: _addItem,
-                  icon: const Icon(Icons.add_circle_outline, size: 20, color: primaryOrange),
-                  label: const Text('Tambah alat', style: TextStyle(color: primaryOrange)),
+                  icon: const Icon(
+                    Icons.add_circle_outline,
+                    size: 20,
+                    color: primaryOrange,
+                  ),
+                  label: const Text(
+                    'Tambah alat',
+                    style: TextStyle(color: primaryOrange),
+                  ),
                 ),
             ],
           ),
@@ -283,13 +274,11 @@ class _TambahPeminjamanDialogState extends State<TambahPeminjamanDialog> {
             Column(
               children: List.generate(
                 selectedItems.length,
-                (index) => _buildAlatItem(index, selectedItems[index], screenWidth),
+                (index) =>
+                    _buildAlatItem(index, selectedItems[index], screenWidth),
               ),
             ),
-
           const SizedBox(height: 24),
-
-          // Tanggal
           _buildSectionLabel('Periode Pinjam'),
           Row(
             children: [
@@ -311,8 +300,6 @@ class _TambahPeminjamanDialogState extends State<TambahPeminjamanDialog> {
             ],
           ),
           const SizedBox(height: 32),
-
-          // Tombol Aksi
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -322,7 +309,9 @@ class _TambahPeminjamanDialogState extends State<TambahPeminjamanDialog> {
                   side: const BorderSide(color: primaryOrange, width: 1.5),
                   foregroundColor: primaryOrange,
                   minimumSize: const Size(120, 48),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
                 child: const Text('Batal'),
               ),
@@ -333,7 +322,9 @@ class _TambahPeminjamanDialogState extends State<TambahPeminjamanDialog> {
                   backgroundColor: primaryOrange,
                   foregroundColor: Colors.white,
                   minimumSize: const Size(140, 48),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
                 child: const Text('Simpan Peminjaman'),
               ),
@@ -358,7 +349,11 @@ class _TambahPeminjamanDialogState extends State<TambahPeminjamanDialog> {
     );
   }
 
-  Widget _buildAlatItem(int index, Map<String, dynamic> item, double screenWidth) {
+  Widget _buildAlatItem(
+    int index,
+    Map<String, dynamic> item,
+    double screenWidth,
+  ) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 0,
@@ -376,7 +371,10 @@ class _TambahPeminjamanDialogState extends State<TambahPeminjamanDialog> {
                     value: item['id_alat'],
                     isExpanded: true,
                     decoration: _inputStyle().copyWith(
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
                     ),
                     items: daftarAlat.map((a) {
                       return DropdownMenuItem<int>(
@@ -388,7 +386,9 @@ class _TambahPeminjamanDialogState extends State<TambahPeminjamanDialog> {
                       );
                     }).toList(),
                     onChanged: (newId) {
-                      final newAlat = daftarAlat.firstWhere((a) => a['id_alat'] == newId);
+                      final newAlat = daftarAlat.firstWhere(
+                        (a) => a['id_alat'] == newId,
+                      );
                       setState(() {
                         selectedItems[index] = {
                           'id_alat': newId,
@@ -402,7 +402,10 @@ class _TambahPeminjamanDialogState extends State<TambahPeminjamanDialog> {
                 ),
                 const SizedBox(width: 8),
                 IconButton(
-                  icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                  icon: const Icon(
+                    Icons.delete_outline,
+                    color: Colors.redAccent,
+                  ),
                   onPressed: () {
                     setState(() => selectedItems.removeAt(index));
                   },
@@ -425,7 +428,10 @@ class _TambahPeminjamanDialogState extends State<TambahPeminjamanDialog> {
                     onChanged: (val) {
                       final qty = int.tryParse(val) ?? 1;
                       setState(() {
-                        selectedItems[index]['jumlah'] = qty.clamp(1, item['stok_tersedia']);
+                        selectedItems[index]['jumlah'] = qty.clamp(
+                          1,
+                          item['stok_tersedia'],
+                        );
                       });
                     },
                   ),
@@ -451,7 +457,10 @@ class _TambahPeminjamanDialogState extends State<TambahPeminjamanDialog> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+        Text(
+          label,
+          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+        ),
         const SizedBox(height: 6),
         InkWell(
           onTap: onTap,
@@ -462,12 +471,18 @@ class _TambahPeminjamanDialogState extends State<TambahPeminjamanDialog> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  value != null ? DateFormat('dd MMM yyyy').format(value) : 'Pilih tanggal',
+                  value != null
+                      ? DateFormat('dd MMM yyyy').format(value)
+                      : 'Pilih tanggal',
                   style: TextStyle(
                     color: value != null ? Colors.black87 : Colors.grey,
                   ),
                 ),
-                const Icon(Icons.calendar_today, size: 20, color: primaryOrange),
+                const Icon(
+                  Icons.calendar_today,
+                  size: 20,
+                  color: primaryOrange,
+                ),
               ],
             ),
           ),

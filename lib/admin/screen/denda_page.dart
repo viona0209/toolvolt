@@ -37,9 +37,9 @@ class _DendaScreenState extends State<DendaScreen> {
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal memuat data denda: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Gagal memuat data denda: $e')));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -60,9 +60,9 @@ class _DendaScreenState extends State<DendaScreen> {
       await _loadDenda();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal menambah denda: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Gagal menambah denda: $e')));
       }
     }
   }
@@ -71,10 +71,7 @@ class _DendaScreenState extends State<DendaScreen> {
     try {
       await supabase
           .from('denda')
-          .update({
-            'nama_denda': namaBaru.trim(),
-            'biaya': biayaBaru,
-          })
+          .update({'nama_denda': namaBaru.trim(), 'biaya': biayaBaru})
           .eq('id_denda', id);
 
       if (mounted) {
@@ -85,9 +82,9 @@ class _DendaScreenState extends State<DendaScreen> {
       await _loadDenda();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal mengedit denda: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Gagal mengedit denda: $e')));
       }
     }
   }
@@ -106,7 +103,9 @@ class _DendaScreenState extends State<DendaScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Gagal menghapus denda: $e\n(Mungkin masih digunakan di peminjaman?)'),
+            content: Text(
+              'Gagal menghapus denda: $e\n(Mungkin masih digunakan di peminjaman?)',
+            ),
           ),
         );
       }
@@ -116,9 +115,7 @@ class _DendaScreenState extends State<DendaScreen> {
   void _showTambahDialog() {
     showDialog(
       context: context,
-      builder: (context) => TambahDendaDialog(
-        onTambah: _tambahDenda,
-      ),
+      builder: (context) => TambahDendaDialog(onTambah: _tambahDenda),
     );
   }
 
@@ -137,11 +134,8 @@ class _DendaScreenState extends State<DendaScreen> {
   void _showHapusDialog(int id, String nama) {
     showDialog(
       context: context,
-      builder: (context) => HapusDendaDialog(
-        id: id,
-        nama: nama,
-        onHapus: _hapusDenda,
-      ),
+      builder: (context) =>
+          HapusDendaDialog(id: id, nama: nama, onHapus: _hapusDenda),
     );
   }
 
@@ -167,7 +161,11 @@ class _DendaScreenState extends State<DendaScreen> {
               Padding(
                 padding: const EdgeInsets.only(top: 25),
                 child: IconButton(
-                  icon: const Icon(Icons.arrow_back, size: 32, color: Colors.black),
+                  icon: const Icon(
+                    Icons.arrow_back,
+                    size: 32,
+                    color: Colors.black,
+                  ),
                   onPressed: () => Navigator.pop(context),
                 ),
               ),
@@ -188,110 +186,156 @@ class _DendaScreenState extends State<DendaScreen> {
                 child: _isLoading
                     ? const Center(child: CircularProgressIndicator())
                     : _dendaList.isEmpty
-                        ? const Center(child: Text('Belum ada data denda'))
-                        : Container(
-                            decoration: BoxDecoration(
-                              border: Border.all(color: const Color(0xFFE0E0E0), width: 1.5),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Column(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                                  decoration: const BoxDecoration(
-                                    color: Color(0xFFFAFAFA),
-                                    borderRadius: BorderRadius.only(
-                                      topLeft: Radius.circular(12),
-                                      topRight: Radius.circular(12),
+                    ? const Center(child: Text('Belum ada data denda'))
+                    : Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: const Color(0xFFE0E0E0),
+                            width: 1.5,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 14,
+                              ),
+                              decoration: const BoxDecoration(
+                                color: Color(0xFFFAFAFA),
+                                borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(12),
+                                  topRight: Radius.circular(12),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    flex: 2,
+                                    child: Text(
+                                      'Nama Denda',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.grey[700],
+                                      ),
                                     ),
                                   ),
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 2,
-                                        child: Text(
-                                          'Nama Denda',
-                                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey[700]),
-                                        ),
+                                  Expanded(
+                                    flex: 2,
+                                    child: Text(
+                                      'Biaya',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.grey[700],
                                       ),
-                                      Expanded(
-                                        flex: 2,
-                                        child: Text(
-                                          'Biaya',
-                                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey[700]),
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        width: 80,
-                                        child: Text(
-                                          'Aksi',
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey[700]),
-                                        ),
-                                      ),
-                                    ],
+                                    ),
                                   ),
-                                ),
-                                Expanded(
-                                  child: ListView.separated(
-                                    itemCount: _dendaList.length,
-                                    separatorBuilder: (_, __) => Divider(height: 1, thickness: 1, color: Colors.grey[200]),
-                                    itemBuilder: (context, index) {
-                                      final denda = _dendaList[index];
-                                      final id = denda['id_denda'] as int;
-                                      final nama = denda['nama_denda'] as String;
-                                      final biaya = denda['biaya'] as int;
-
-                                      return Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                                        child: Row(
-                                          children: [
-                                            Expanded(
-                                              flex: 2,
-                                              child: Text(
-                                                nama,
-                                                style: const TextStyle(fontSize: 14, color: Colors.black87),
-                                              ),
-                                            ),
-                                            Expanded(
-                                              flex: 2,
-                                              child: Text(
-                                                'Rp ${biaya.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}',
-                                                style: const TextStyle(fontSize: 14, color: Colors.red, fontWeight: FontWeight.w500),
-                                              ),
-                                            ),
-                                            SizedBox(
-                                              width: 80,
-                                              child: Row(
-                                                mainAxisAlignment: MainAxisAlignment.center,
-                                                children: [
-                                                  InkWell(
-                                                    onTap: () => _showEditDialog(id, nama, biaya),
-                                                    child: const Padding(
-                                                      padding: EdgeInsets.all(6),
-                                                      child: Icon(Icons.edit_outlined, size: 18, color: Colors.black54),
-                                                    ),
-                                                  ),
-                                                  const SizedBox(width: 8),
-                                                  InkWell(
-                                                    onTap: () => _showHapusDialog(id, nama),
-                                                    child: const Padding(
-                                                      padding: EdgeInsets.all(6),
-                                                      child: Icon(Icons.delete_outline, size: 18, color: Colors.red),
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    },
+                                  SizedBox(
+                                    width: 80,
+                                    child: Text(
+                                      'Aksi',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.grey[700],
+                                      ),
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
+                            Expanded(
+                              child: ListView.separated(
+                                itemCount: _dendaList.length,
+                                separatorBuilder: (_, __) => Divider(
+                                  height: 1,
+                                  thickness: 1,
+                                  color: Colors.grey[200],
+                                ),
+                                itemBuilder: (context, index) {
+                                  final denda = _dendaList[index];
+                                  final id = denda['id_denda'] as int;
+                                  final nama = denda['nama_denda'] as String;
+                                  final biaya = denda['biaya'] as int;
+
+                                  return Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 16,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          flex: 2,
+                                          child: Text(
+                                            nama,
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                              color: Colors.black87,
+                                            ),
+                                          ),
+                                        ),
+                                        Expanded(
+                                          flex: 2,
+                                          child: Text(
+                                            'Rp ${biaya.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}',
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                              color: Colors.red,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ),
+                                        SizedBox(
+                                          width: 80,
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              InkWell(
+                                                onTap: () => _showEditDialog(
+                                                  id,
+                                                  nama,
+                                                  biaya,
+                                                ),
+                                                child: const Padding(
+                                                  padding: EdgeInsets.all(6),
+                                                  child: Icon(
+                                                    Icons.edit_outlined,
+                                                    size: 18,
+                                                    color: Colors.black54,
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              InkWell(
+                                                onTap: () =>
+                                                    _showHapusDialog(id, nama),
+                                                child: const Padding(
+                                                  padding: EdgeInsets.all(6),
+                                                  child: Icon(
+                                                    Icons.delete_outline,
+                                                    size: 18,
+                                                    color: Colors.red,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
               ),
             ],
           ),

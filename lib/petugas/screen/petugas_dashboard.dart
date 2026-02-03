@@ -80,8 +80,6 @@ class _PetugasDashboardState extends State<PetugasDashboard> {
     if (t.contains('kembali')) {
       return 'Mengembalikan alat';
     }
-
-    // fallback aman
     return text.length > 35 ? '${text.substring(0, 35)}...' : text;
   }
 
@@ -103,7 +101,7 @@ class _PetugasDashboardState extends State<PetugasDashboard> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'Hallo admin',
+                      'Hallo Petugas',
                       style: TextStyle(
                         fontSize: 32,
                         fontWeight: FontWeight.bold,

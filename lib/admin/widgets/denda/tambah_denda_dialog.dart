@@ -3,10 +3,7 @@ import 'package:flutter/material.dart';
 class TambahDendaDialog extends StatelessWidget {
   final Function(String, int) onTambah;
 
-  const TambahDendaDialog({
-    super.key,
-    required this.onTambah,
-  });
+  const TambahDendaDialog({super.key, required this.onTambah});
 
   static const primaryOrange = Color(0xFFFF7733);
 
@@ -56,7 +53,9 @@ class TambahDendaDialog extends StatelessWidget {
                     side: const BorderSide(color: primaryOrange, width: 1.5),
                     foregroundColor: primaryOrange,
                     minimumSize: const Size(110, 46),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   child: const Text('Batal'),
                 ),
@@ -64,7 +63,10 @@ class TambahDendaDialog extends StatelessWidget {
                 ElevatedButton(
                   onPressed: () {
                     final nama = namaController.text.trim();
-                    final biayaText = biayaController.text.trim().replaceAll('.', '');
+                    final biayaText = biayaController.text.trim().replaceAll(
+                      '.',
+                      '',
+                    );
                     final biaya = int.tryParse(biayaText) ?? 0;
 
                     if (nama.isNotEmpty && biaya > 0) {
@@ -72,7 +74,9 @@ class TambahDendaDialog extends StatelessWidget {
                       Navigator.pop(context);
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Lengkapi nama dan biaya dengan benar')),
+                        const SnackBar(
+                          content: Text('Lengkapi nama dan biaya dengan benar'),
+                        ),
                       );
                     }
                   },
@@ -80,7 +84,9 @@ class TambahDendaDialog extends StatelessWidget {
                     backgroundColor: primaryOrange,
                     foregroundColor: Colors.white,
                     minimumSize: const Size(130, 46),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   child: const Text('Tambah'),
                 ),
@@ -93,25 +99,25 @@ class TambahDendaDialog extends StatelessWidget {
   }
 
   Widget _buildLabel(String text) => Padding(
-        padding: const EdgeInsets.only(bottom: 6),
-        child: Align(
-          alignment: Alignment.centerLeft,
-          child: Text(
-            text,
-            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-          ),
-        ),
-      );
+    padding: const EdgeInsets.only(bottom: 6),
+    child: Align(
+      alignment: Alignment.centerLeft,
+      child: Text(
+        text,
+        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+      ),
+    ),
+  );
 
   InputDecoration _inputDecoration() => InputDecoration(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFFF7733)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFFF7733), width: 2),
-        ),
-      );
+    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(color: Color(0xFFFF7733)),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(color: Color(0xFFFF7733), width: 2),
+    ),
+  );
 }

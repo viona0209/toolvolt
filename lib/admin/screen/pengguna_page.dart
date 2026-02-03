@@ -68,8 +68,9 @@ class _PenggunaScreenState extends State<PenggunaScreen> {
         .where((e) => e['role'] == 'petugas' || e['role'] == 'admin')
         .length;
 
-    final totalPeminjam =
-        penggunaList.where((e) => e['role'] == 'peminjam').length;
+    final totalPeminjam = penggunaList
+        .where((e) => e['role'] == 'peminjam')
+        .length;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -84,7 +85,6 @@ class _PenggunaScreenState extends State<PenggunaScreen> {
                     children: [
                       const SizedBox(height: 20),
 
-                      // Back button
                       IconButton(
                         icon: const Icon(
                           Icons.arrow_back,
@@ -115,15 +115,12 @@ class _PenggunaScreenState extends State<PenggunaScreen> {
 
                       const SizedBox(height: 16),
 
-                      // Search + button
                       Row(
                         children: [
                           Expanded(
                             child: TextField(
                               controller: searchController,
-                              decoration: inputDecoration(
-                                // hintText: 'Cari pengguna...',
-                              ),
+                              decoration: inputDecoration(),
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -153,7 +150,6 @@ class _PenggunaScreenState extends State<PenggunaScreen> {
 
                       const SizedBox(height: 24),
 
-                      // ===== Total Card =====
                       SizedBox(
                         child: IntrinsicHeight(
                           child: Row(
@@ -218,7 +214,6 @@ class _PenggunaScreenState extends State<PenggunaScreen> {
 
                       const SizedBox(height: 14),
 
-                      // ===== LIST PENGGUNA =====
                       Container(
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(16),
@@ -226,10 +221,7 @@ class _PenggunaScreenState extends State<PenggunaScreen> {
                         ),
                         child: Column(
                           children: [
-                            // HEADER
                             _buildHeader(),
-
-                            // --- LOOP DATA ---
                             if (filteredPenggunaList.isEmpty)
                               Padding(
                                 padding: const EdgeInsets.all(32.0),
@@ -251,27 +243,27 @@ class _PenggunaScreenState extends State<PenggunaScreen> {
                                       onEdit: () async {
                                         final success =
                                             await showEditPenggunaDialog(
-                                          context,
-                                          item['id_pengguna'],
-                                          item['nama'],
-                                          item['username'],
-                                          item['role'],
-                                        );
+                                              context,
+                                              item['id_pengguna'],
+                                              item['nama'],
+                                              item['username'],
+                                              item['role'],
+                                            );
                                         if (success == true) loadData();
                                       },
                                       onDelete: () async {
                                         final success =
                                             await showHapusPenggunaDialog(
-                                          context,
-                                          item['id_pengguna'],
-                                          item['nama'],
-                                          authId: item['auth_id']?.toString(), // ✅ KIRIM AUTH_ID
-                                        );
+                                              context,
+                                              item['id_pengguna'],
+                                              item['nama'],
+                                              authId: item['auth_id']
+                                                  ?.toString(),
+                                            );
                                         if (success == true) loadData();
                                       },
                                     ),
-                                    if (item !=
-                                        filteredPenggunaList.last)
+                                    if (item != filteredPenggunaList.last)
                                       Divider(
                                         height: 1,
                                         thickness: 1,

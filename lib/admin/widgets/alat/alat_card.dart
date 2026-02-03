@@ -93,7 +93,7 @@ class _AlatCardState extends State<AlatCard> {
           .select('id_kategori, nama_kategori')
           .order('nama_kategori');
 
-      if (!mounted) return; // ✅ tambahkan ini
+      if (!mounted) return;
       setState(() {
         kategoriOptions = response
             .map((row) => row['nama_kategori'] as String)
@@ -101,7 +101,7 @@ class _AlatCardState extends State<AlatCard> {
         isLoadingKategori = false;
       });
     } catch (e) {
-      if (!mounted) return; // ✅ tambahkan
+      if (!mounted) return;
       setState(() => isLoadingKategori = false);
       ScaffoldMessenger.of(
         context,
@@ -252,7 +252,6 @@ class _AlatCardState extends State<AlatCard> {
           isLoadingKategori: isLoadingKategori,
           primaryOrange: const Color(0xFFFF8E01),
           onSuccess: () {
-            // ✅ hanya refresh daftar, jangan pop dialog
             widget.onRefresh?.call();
           },
         );
@@ -311,18 +310,14 @@ class _AlatCardState extends State<AlatCard> {
                             .eq('id_alat', widget.idAlat);
 
                         if (mounted) {
-                          // ✅ tampilkan pesan sukses di atas layar
                           showTopMessage(context, 'Alat berhasil dihapus');
                           widget.onRefresh?.call();
                         }
                       } catch (e) {
                         if (mounted) {
-                          // ✅ tampilkan pesan error di atas layar
                           showTopMessage(context, 'Gagal menghapus: $e');
                         }
                       }
-
-                      // ✅ tutup dialog
                       Navigator.pop(dialogContext);
                     },
                     style: ElevatedButton.styleFrom(
@@ -384,8 +379,8 @@ class __EditAlatDialogState extends State<_EditAlatDialog> {
   late TextEditingController kondisiController;
 
   String? selectedKategori;
-  XFile? pickedFile; // cross-platform (mobile & web)
-  Uint8List? webImageBytes; // untuk preview & upload di web
+  XFile? pickedFile;
+  Uint8List? webImageBytes;
 
   final supabase = Supabase.instance.client;
 
@@ -467,7 +462,6 @@ class __EditAlatDialogState extends State<_EditAlatDialog> {
       final path = 'alat/$fileName';
 
       if (kIsWeb) {
-        // Web upload
         final bytes = await pickedFile!.readAsBytes();
         await supabase.storage
             .from('alat-gambar')
@@ -477,7 +471,6 @@ class __EditAlatDialogState extends State<_EditAlatDialog> {
               fileOptions: const FileOptions(contentType: 'image/jpeg'),
             );
       } else {
-        // Mobile upload
         await supabase.storage
             .from('alat-gambar')
             .upload(
@@ -639,7 +632,7 @@ class __EditAlatDialogState extends State<_EditAlatDialog> {
                   if (img != null) {
                     setState(() {
                       pickedFile = img;
-                      webImageBytes = null; // reset untuk web
+                      webImageBytes = null;
                     });
                   }
                 },
@@ -721,14 +714,8 @@ class __EditAlatDialogState extends State<_EditAlatDialog> {
                             .eq('id_alat', widget.idAlat);
 
                         if (!mounted) return;
-
-                        // ✅ refresh parent
                         widget.onSuccess();
-
-                        // ✅ tutup dialog
                         Navigator.pop(context);
-
-                        // ✅ tampilkan pesan sukses di atas layar
                         showTopMessage(context, 'Alat berhasil diperbarui');
                       } catch (e) {
                         if (mounted) {

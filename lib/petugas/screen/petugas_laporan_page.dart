@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 import 'package:toolvolt/petugas/service/laporan_service.dart';
 import '../widgets/petugas_bottom_nav.dart';
 import 'petugas_dashboard.dart';
@@ -36,7 +39,9 @@ class _PetugasLaporanPageState extends State<PetugasLaporanPage> {
   }
 
   Future<void> _selectDate(
-      BuildContext context, TextEditingController controller) async {
+    BuildContext context,
+    TextEditingController controller,
+  ) async {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
@@ -87,13 +92,70 @@ class _PetugasLaporanPageState extends State<PetugasLaporanPage> {
     setState(() => loading = false);
   }
 
+  Future<void> generatePDF() async {
+    final pdf = pw.Document();
+
+    pdf.addPage(
+      pw.MultiPage(
+        build: (pw.Context context) => [
+          pw.Center(
+            child: pw.Text(
+              selectedJenisLaporan!,
+              style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold),
+            ),
+          ),
+          pw.SizedBox(height: 10),
+
+          pw.Text(
+            "Periode: ${tanggalMulaiController.text} s/d ${tanggalAkhirController.text}",
+            style: pw.TextStyle(fontSize: 12),
+          ),
+          pw.SizedBox(height: 15),
+
+          // TABLE
+          pw.Table.fromTextArray(
+            headers: ["Nama", "Tanggal Pinjam", "Tanggal Kembali", "Status"],
+            data: laporanData.map((data) {
+              final String nama = (selectedJenisLaporan == "Laporan peminjaman")
+                  ? (data['pengguna']?['nama'] ?? '-')
+                  : (data['peminjaman']?['pengguna']?['nama'] ?? '-');
+
+              final String tglPinjam =
+                  (selectedJenisLaporan == "Laporan peminjaman")
+                  ? (data['tanggal_pinjam'] ?? '-')
+                  : (data['peminjaman']?['tanggal_pinjam'] ?? '-');
+
+              final String tglKembali =
+                  (selectedJenisLaporan == "Laporan peminjaman")
+                  ? (data['tanggal_kembali'] ?? '-')
+                  : (data['peminjaman']?['tanggal_kembali'] ?? '-');
+
+              final String status =
+                  (selectedJenisLaporan == "Laporan peminjaman")
+                  ? (data['status'] ?? '-')
+                  : (data['kondisi_setelah'] ?? '-');
+
+              return [nama, tglPinjam, tglKembali, status];
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+
+    // SAVE / DOWNLOAD
+    await Printing.layoutPdf(
+      onLayout: (PdfPageFormat format) async => pdf.save(),
+    );
+  }
+
   Widget _buildUnderlinedLabel(String text) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(text,
-            style:
-                const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+        Text(
+          text,
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+        ),
         Container(
           height: 1.5,
           width: 60,
@@ -123,11 +185,13 @@ class _PetugasLaporanPageState extends State<PetugasLaporanPage> {
             ? (data['pengguna']?['nama'] ?? '-')
             : (data['peminjaman']?['pengguna']?['nama'] ?? '-');
 
-        final String tanggalPinjam = (selectedJenisLaporan == "Laporan peminjaman")
+        final String tanggalPinjam =
+            (selectedJenisLaporan == "Laporan peminjaman")
             ? (data['tanggal_pinjam'] ?? '-')
             : (data['peminjaman']?['tanggal_pinjam'] ?? '-');
 
-        final String tanggalKembali = (selectedJenisLaporan == "Laporan peminjaman")
+        final String tanggalKembali =
+            (selectedJenisLaporan == "Laporan peminjaman")
             ? (data['tanggal_kembali'] ?? '-')
             : (data['peminjaman']?['tanggal_kembali'] ?? '-');
 
@@ -137,11 +201,13 @@ class _PetugasLaporanPageState extends State<PetugasLaporanPage> {
         if (selectedJenisLaporan == "Laporan peminjaman") {
           final status = data['status'] ?? '';
           statusText = status.isNotEmpty ? status : '-';
-          if (status.toLowerCase() == 'dikembalikan') statusColor = Colors.green;
+          if (status.toLowerCase() == 'dikembalikan')
+            statusColor = Colors.green;
         } else {
           final kondisiSetelah = data['kondisi_setelah'] ?? '-';
           statusText = kondisiSetelah;
-          if (kondisiSetelah.toLowerCase() == 'baik') statusColor = Colors.green;
+          if (kondisiSetelah.toLowerCase() == 'baik')
+            statusColor = Colors.green;
         }
 
         return Container(
@@ -151,13 +217,31 @@ class _PetugasLaporanPageState extends State<PetugasLaporanPage> {
           ),
           child: Row(
             children: [
-              Expanded(flex: 3, child: Text(nama, style: const TextStyle(fontSize: 13))),
-              Expanded(flex: 2, child: Text(tanggalPinjam, style: const TextStyle(fontSize: 13))),
-              Expanded(flex: 2, child: Text(tanggalKembali, style: const TextStyle(fontSize: 13))),
+              Expanded(
+                flex: 3,
+                child: Text(nama, style: const TextStyle(fontSize: 13)),
+              ),
+              Expanded(
+                flex: 2,
+                child: Text(
+                  tanggalPinjam,
+                  style: const TextStyle(fontSize: 13),
+                ),
+              ),
+              Expanded(
+                flex: 2,
+                child: Text(
+                  tanggalKembali,
+                  style: const TextStyle(fontSize: 13),
+                ),
+              ),
               Expanded(
                 flex: 2,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 6,
+                    horizontal: 10,
+                  ),
                   decoration: BoxDecoration(
                     color: statusColor,
                     borderRadius: BorderRadius.circular(20),
@@ -198,10 +282,11 @@ class _PetugasLaporanPageState extends State<PetugasLaporanPage> {
                 ),
               ),
               const SizedBox(height: 30),
-              const Text('Laporan',
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+              const Text(
+                'Laporan',
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 20),
-              // FORM FILTER LAPORAN
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
@@ -226,7 +311,8 @@ class _PetugasLaporanPageState extends State<PetugasLaporanPage> {
                           child: Text('Laporan pengembalian'),
                         ),
                       ],
-                      onChanged: (v) => setState(() => selectedJenisLaporan = v),
+                      onChanged: (v) =>
+                          setState(() => selectedJenisLaporan = v),
                     ),
                     const SizedBox(height: 15),
                     _buildUnderlinedLabel("Tanggal Mulai"),
@@ -245,28 +331,64 @@ class _PetugasLaporanPageState extends State<PetugasLaporanPage> {
                       decoration: const InputDecoration(hintText: "yyyy-mm-dd"),
                     ),
                     const SizedBox(height: 20),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: ElevatedButton.icon(
-                        onPressed: loadLaporan,
-                        icon: const Icon(Icons.search),
-                        label: const Text("Tampilkan Laporan"),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: primaryOrange,
-                          foregroundColor: Colors.white,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        SizedBox(
+                          height: 38,
+                          child: ElevatedButton.icon(
+                            onPressed: loadLaporan,
+                            icon: const Icon(Icons.search, size: 18),
+                            label: const Text(
+                              "Tampilkan",
+                              style: TextStyle(fontSize: 12),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: primaryOrange,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 8,
+                              ),
+                              minimumSize: const Size(95, 36),
+                            ),
+                          ),
                         ),
-                      ),
-                    )
+                        const SizedBox(width: 8),
+                        SizedBox(
+                          height: 38,
+                          child: ElevatedButton.icon(
+                            onPressed: laporanData.isEmpty ? null : generatePDF,
+                            icon: const Icon(Icons.picture_as_pdf, size: 18),
+                            label: const Text(
+                              "Download",
+                              style: TextStyle(fontSize: 12),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.redAccent,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 8,
+                              ),
+                              minimumSize: const Size(85, 36),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
               const SizedBox(height: 25),
               Text(
                 selectedJenisLaporan ?? '-',
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 10),
-              // LIST DATA
               Container(
                 decoration: BoxDecoration(
                   color: Colors.white,
@@ -280,7 +402,6 @@ class _PetugasLaporanPageState extends State<PetugasLaporanPage> {
           ),
         ),
       ),
-      // NAV BAR
       bottomNavigationBar: PetugasBottomNav(
         currentIndex: _currentIndex,
         onTap: (index) {

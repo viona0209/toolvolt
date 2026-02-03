@@ -29,7 +29,6 @@ class _TambahPengembalianDialogState extends State<TambahPengembalianDialog> {
     _loadPeminjaman();
   }
 
-  /// Ambil daftar peminjaman
   Future<void> _loadPeminjaman() async {
     final response = await Supabase.instance.client
         .from('peminjaman')
@@ -45,14 +44,11 @@ class _TambahPengembalianDialogState extends State<TambahPengembalianDialog> {
     });
   }
 
-  /// Simpan pengembalian
   Future<void> _submit() async {
     if (selectedPeminjaman == null) {
       showTopSnackBar(
         Overlay.of(context),
-        const CustomSnackBar.error(
-          message: "Pilih peminjaman terlebih dahulu",
-        ),
+        const CustomSnackBar.error(message: "Pilih peminjaman terlebih dahulu"),
       );
       return;
     }
@@ -67,7 +63,6 @@ class _TambahPengembalianDialogState extends State<TambahPengembalianDialog> {
         'catatan': catatanController.text,
       });
 
-      // update status
       await Supabase.instance.client
           .from('peminjaman')
           .update({'status': 'dikembalikan'})
@@ -83,13 +78,10 @@ class _TambahPengembalianDialogState extends State<TambahPengembalianDialog> {
       );
 
       widget.onSuccess?.call();
-
     } catch (e) {
       showTopSnackBar(
         Overlay.of(context),
-        CustomSnackBar.error(
-          message: "Gagal menambah pengembalian: $e",
-        ),
+        CustomSnackBar.error(message: "Gagal menambah pengembalian: $e"),
       );
     }
   }
@@ -115,8 +107,6 @@ class _TambahPengembalianDialogState extends State<TambahPengembalianDialog> {
                 ),
               ),
               const SizedBox(height: 24),
-
-              /// PILIH PEMINJAMAN
               _buildLabel('Pilih peminjaman'),
               DropdownButtonFormField<String?>(
                 value: selectedPeminjaman,
@@ -135,10 +125,7 @@ class _TambahPengembalianDialogState extends State<TambahPengembalianDialog> {
                 }).toList(),
                 onChanged: (val) => setState(() => selectedPeminjaman = val),
               ),
-
               const SizedBox(height: 20),
-
-              /// KONDISI
               _buildLabel('Kondisi alat setelah dikembalikan'),
               DropdownButtonFormField<String?>(
                 value: selectedKondisi,
@@ -147,11 +134,17 @@ class _TambahPengembalianDialogState extends State<TambahPengembalianDialog> {
                 items: const [
                   DropdownMenuItem(value: 'Baik', child: Text('Baik')),
                   DropdownMenuItem(
-                      value: 'Rusak Ringan', child: Text('Rusak Ringan')),
+                    value: 'Rusak Ringan',
+                    child: Text('Rusak Ringan'),
+                  ),
                   DropdownMenuItem(
-                      value: 'Rusak Sedang', child: Text('Rusak Sedang')),
+                    value: 'Rusak Sedang',
+                    child: Text('Rusak Sedang'),
+                  ),
                   DropdownMenuItem(
-                      value: 'Rusak Berat', child: Text('Rusak Berat')),
+                    value: 'Rusak Berat',
+                    child: Text('Rusak Berat'),
+                  ),
                   DropdownMenuItem(value: 'Hilang', child: Text('Hilang')),
                 ],
                 onChanged: (val) => setState(() => selectedKondisi = val),
@@ -159,7 +152,6 @@ class _TambahPengembalianDialogState extends State<TambahPengembalianDialog> {
 
               const SizedBox(height: 16),
 
-              /// CATATAN
               _buildLabel('Catatan (opsional)'),
               TextField(
                 controller: catatanController,
@@ -168,8 +160,6 @@ class _TambahPengembalianDialogState extends State<TambahPengembalianDialog> {
               ),
 
               const SizedBox(height: 30),
-
-              /// BUTTON
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -208,22 +198,22 @@ class _TambahPengembalianDialogState extends State<TambahPengembalianDialog> {
   }
 
   Widget _buildLabel(String text) => Padding(
-        padding: const EdgeInsets.only(bottom: 6),
-        child: Text(
-          text,
-          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-        ),
-      );
+    padding: const EdgeInsets.only(bottom: 6),
+    child: Text(
+      text,
+      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+    ),
+  );
 
   InputDecoration _inputDecoration() => InputDecoration(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFFF7A00)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFFF7A00), width: 2),
-        ),
-      );
+    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(color: Color(0xFFFF7A00)),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(color: Color(0xFFFF7A00), width: 2),
+    ),
+  );
 }

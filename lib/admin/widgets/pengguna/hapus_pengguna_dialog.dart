@@ -4,9 +4,9 @@ import '../../services/pengguna_service.dart';
 Future<bool?> showHapusPenggunaDialog(
   BuildContext context,
   int idPengguna,
-  String nama,
-  {String? authId} // tambahkan parameter opsional
-) {
+  String nama, {
+  String? authId,
+}) {
   const primaryOrange = Color(0xFFFF7733);
 
   return showDialog<bool>(
@@ -52,15 +52,15 @@ Future<bool?> showHapusPenggunaDialog(
 
                       final res = await service.hapusPengguna(
                         idPengguna: idPengguna,
-                        authId: authId, // kirim authId
+                        authId: authId,
                       );
 
                       if (res == null) {
                         Navigator.pop(dialogContext, true);
                       } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(res)),
-                        );
+                        ScaffoldMessenger.of(
+                          context,
+                        ).showSnackBar(SnackBar(content: Text(res)));
                       }
                     },
                     style: ElevatedButton.styleFrom(

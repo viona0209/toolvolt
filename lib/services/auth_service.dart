@@ -8,6 +8,26 @@ class AuthService {
     required String password,
   }) async {
     try {
+      // ============================
+      // 1. Cek apakah email terdaftar
+      // ============================
+      final existingUser = await supabase
+          .from('pengguna')
+          .select('auth_id, email')
+          .eq('email', email)
+          .maybeSingle(); // <-- aman, tidak error 406
+
+      if (existingUser == null) {
+        return {
+          'success': false,
+          'error_type': 'email_not_found',
+          'message': 'Email tidak terdaftar',
+        };
+      }
+
+      // ============================
+      // 2. Coba login Supabase
+      // ============================
       final AuthResponse response = await supabase.auth.signInWithPassword(
         email: email,
         password: password,
@@ -16,15 +36,27 @@ class AuthService {
       if (response.user == null) {
         return {
           'success': false,
-          'message': 'Login gagal',
+          'error_type': 'wrong_password',
+          'message': 'Password salah',
         };
       }
 
+      // ============================
+      // 3. Ambil data lengkap pengguna
+      // ============================
       final userData = await supabase
           .from('pengguna')
           .select()
           .eq('auth_id', response.user!.id)
-          .single();
+          .maybeSingle(); // <-- perbaikan: aman
+
+      if (userData == null) {
+        return {
+          'success': false,
+          'error_type': 'user_data_missing',
+          'message': 'Data pengguna tidak ditemukan',
+        };
+      }
 
       return {
         'success': true,
@@ -33,23 +65,45 @@ class AuthService {
         'role': userData['role'],
         'nama': userData['nama'],
       };
-    } on AuthException catch (e) {
-      String message = 'Login gagal';
-      
-      if (e.message.contains('Invalid login credentials')) {
-        message = 'Email atau password salah';
-      } else if (e.message.contains('Email not confirmed')) {
-        message = 'Email belum diverifikasi';
+    }
+
+    // ============================
+    // 4. Tangani Error Supabase Auth
+    // ============================
+    on AuthException catch (e) {
+      final msg = e.message.toLowerCase();
+
+      if (msg.contains('invalid login credentials')) {
+        return {
+          'success': false,
+          'error_type': 'wrong_credentials',
+          'message': 'Email atau password salah',
+        };
       }
-      
+
+      if (msg.contains('email not confirmed')) {
+        return {
+          'success': false,
+          'error_type': 'email_unverified',
+          'message': 'Email belum diverifikasi',
+        };
+      }
+
       return {
         'success': false,
-        'message': message,
+        'error_type': 'auth_exception',
+        'message': e.message,
       };
-    } catch (e) {
+    }
+
+    // ============================
+    // 5. Error lain
+    // ============================
+    catch (e) {
       return {
         'success': false,
-        'message': 'Error: ${e.toString()}',
+        'error_type': 'exception',
+        'message': 'Error: $e',
       };
     }
   }
@@ -71,7 +125,7 @@ class AuthService {
           .from('pengguna')
           .select()
           .eq('auth_id', user.id)
-          .single();
+          .maybeSingle(); // perbaikan
 
       return userData;
     } catch (e) {

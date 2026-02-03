@@ -9,14 +9,14 @@ Future<bool?> showTambahPenggunaDialog(BuildContext context) {
   final namaController = TextEditingController();
   final emailController = TextEditingController();
   final usernameController = TextEditingController();
-  final passwordController = TextEditingController(); // ✅ TAMBAH INI
+  final passwordController = TextEditingController();
   String? selectedRole;
-  bool obscurePassword = true; // ✅ TAMBAH INI
+  bool obscurePassword = true;
 
   return showDialog<bool>(
     context: context,
     builder: (dialogContext) {
-      return StatefulBuilder( // ✅ GUNAKAN StatefulBuilder
+      return StatefulBuilder(
         builder: (context, setState) {
           return Dialog(
             shape: RoundedRectangleBorder(
@@ -31,19 +31,18 @@ Future<bool?> showTambahPenggunaDialog(BuildContext context) {
                   children: [
                     const Text(
                       'Tambah Pengguna',
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                     const SizedBox(height: 24),
-
-                    // Input Nama
                     labelWidget('Nama *'),
                     TextField(
                       controller: namaController,
                       decoration: inputDecoration(),
                     ),
                     const SizedBox(height: 16),
-
-                    // Email (WAJIB untuk Auth)
                     labelWidget('Email *'),
                     TextField(
                       controller: emailController,
@@ -51,16 +50,12 @@ Future<bool?> showTambahPenggunaDialog(BuildContext context) {
                       keyboardType: TextInputType.emailAddress,
                     ),
                     const SizedBox(height: 16),
-
-                    // Username (optional)
                     labelWidget('Username'),
                     TextField(
                       controller: usernameController,
                       decoration: inputDecoration(),
                     ),
                     const SizedBox(height: 16),
-
-                    // ✅ TAMBAH INPUT PASSWORD
                     labelWidget('Password *'),
                     TextField(
                       controller: passwordController,
@@ -75,15 +70,23 @@ Future<bool?> showTambahPenggunaDialog(BuildContext context) {
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey[300]!, width: 1),
+                          borderSide: BorderSide(
+                            color: Colors.grey[300]!,
+                            width: 1,
+                          ),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: primaryOrange, width: 2),
+                          borderSide: const BorderSide(
+                            color: primaryOrange,
+                            width: 2,
+                          ),
                         ),
                         suffixIcon: IconButton(
                           icon: Icon(
-                            obscurePassword ? Icons.visibility_off : Icons.visibility,
+                            obscurePassword
+                                ? Icons.visibility_off
+                                : Icons.visibility,
                             color: Colors.grey,
                           ),
                           onPressed: () {
@@ -95,8 +98,6 @@ Future<bool?> showTambahPenggunaDialog(BuildContext context) {
                       ),
                     ),
                     const SizedBox(height: 16),
-
-                    // Role
                     labelWidget('Role *'),
                     DropdownButtonFormField<String>(
                       value: selectedRole,
@@ -105,15 +106,18 @@ Future<bool?> showTambahPenggunaDialog(BuildContext context) {
                       hint: const Text('Pilih role'),
                       items: const [
                         DropdownMenuItem(value: 'admin', child: Text('Admin')),
-                        DropdownMenuItem(value: 'petugas', child: Text('Petugas')),
-                        DropdownMenuItem(value: 'peminjam', child: Text('Peminjam')),
+                        DropdownMenuItem(
+                          value: 'petugas',
+                          child: Text('Petugas'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'peminjam',
+                          child: Text('Peminjam'),
+                        ),
                       ],
                       onChanged: (val) => selectedRole = val,
                     ),
-
                     const SizedBox(height: 16),
-
-                    // Info password
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
@@ -123,21 +127,25 @@ Future<bool?> showTambahPenggunaDialog(BuildContext context) {
                       ),
                       child: const Row(
                         children: [
-                          Icon(Icons.info_outline, color: Colors.blue, size: 20),
+                          Icon(
+                            Icons.info_outline,
+                            color: Colors.blue,
+                            size: 20,
+                          ),
                           SizedBox(width: 8),
                           Expanded(
                             child: Text(
                               'Password minimal 6 karakter. User dapat mengubahnya setelah login.',
-                              style: TextStyle(fontSize: 12, color: Colors.black87),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.black87,
+                              ),
                             ),
                           ),
                         ],
                       ),
                     ),
-
                     const SizedBox(height: 24),
-
-                    // BUTTONS
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -152,7 +160,6 @@ Future<bool?> showTambahPenggunaDialog(BuildContext context) {
                         const SizedBox(width: 16),
                         ElevatedButton(
                           onPressed: () async {
-                            // Validasi
                             if (namaController.text.trim().isEmpty) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
@@ -162,7 +169,6 @@ Future<bool?> showTambahPenggunaDialog(BuildContext context) {
                               );
                               return;
                             }
-
                             if (emailController.text.trim().isEmpty) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
@@ -172,8 +178,6 @@ Future<bool?> showTambahPenggunaDialog(BuildContext context) {
                               );
                               return;
                             }
-
-                            // ✅ VALIDASI PASSWORD
                             if (passwordController.text.trim().isEmpty) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
@@ -214,13 +218,13 @@ Future<bool?> showTambahPenggunaDialog(BuildContext context) {
                               return;
                             }
 
-                            // Auto-generate username dari email jika kosong
                             String username = usernameController.text.trim();
                             if (username.isEmpty) {
-                              username = emailController.text.trim().split("@")[0];
+                              username = emailController.text.trim().split(
+                                "@",
+                              )[0];
                             }
 
-                            // Show loading
                             showDialog(
                               context: dialogContext,
                               barrierDismissible: false,
@@ -235,17 +239,19 @@ Future<bool?> showTambahPenggunaDialog(BuildContext context) {
                               username: username,
                               role: selectedRole!,
                               email: emailController.text.trim(),
-                              password: passwordController.text.trim(), // ✅ KIRIM PASSWORD
+                              password: passwordController.text
+                                  .trim(), // ✅ KIRIM PASSWORD
                             );
 
-                            // Hide loading
                             Navigator.pop(dialogContext);
 
                             if (res == null) {
                               Navigator.pop(dialogContext, true);
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                  content: Text("Pengguna berhasil ditambahkan!"),
+                                  content: Text(
+                                    "Pengguna berhasil ditambahkan!",
+                                  ),
                                   backgroundColor: Colors.green,
                                 ),
                               );

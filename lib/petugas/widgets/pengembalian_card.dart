@@ -6,13 +6,15 @@ class PengembalianCard extends StatefulWidget {
   final String id;
   final String nama;
   final String tanggalPinjam;
-  final VoidCallback? onUpdated; // callback untuk refresh list parent
+  final int idPengguna; // ← ID user yang melakukan pengembalian
+  final VoidCallback? onUpdated;
 
   const PengembalianCard({
     super.key,
     required this.id,
     required this.nama,
     required this.tanggalPinjam,
+    required this.idPengguna,
     this.onUpdated,
   });
 
@@ -182,10 +184,12 @@ class _PengembalianCardState extends State<PengembalianCard> {
                       }
 
                       final success = await _service.prosesPengembalian(
-                        idPeminjaman: int.parse(widget.id),
-                        kondisi: _selectedCondition!,
-                        tanggalPengembalian: _selectedReturnDate!,
-                      );
+  idPeminjaman: int.parse(widget.id),
+  kondisi: _selectedCondition!,
+  tanggalPengembalian: _selectedReturnDate!,
+  aktivitas: 'Melakukan pengembalian alat oleh ${widget.nama}',
+  idPengguna: widget.idPengguna,
+);
 
                       if (success) {
                         Navigator.pop(context);

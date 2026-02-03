@@ -51,7 +51,9 @@ class HapusDendaDialog extends StatelessWidget {
                     side: const BorderSide(color: primaryOrange, width: 1.5),
                     foregroundColor: primaryOrange,
                     minimumSize: const Size(110, 46),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   child: const Text('Batal'),
                 ),
@@ -65,7 +67,9 @@ class HapusDendaDialog extends StatelessWidget {
                     backgroundColor: Colors.red,
                     foregroundColor: Colors.white,
                     minimumSize: const Size(130, 46),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   child: const Text('Hapus'),
                 ),

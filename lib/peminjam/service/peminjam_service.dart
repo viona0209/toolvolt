@@ -4,9 +4,7 @@ final supabase = Supabase.instance.client;
 
 class PeminjamService {
   Future<int> getTotalAlatTersedia() async {
-    final response = await supabase
-        .from('alat')
-        .select('jumlah_tersedia');
+    final response = await supabase.from('alat').select('jumlah_tersedia');
 
     int total = 0;
     for (var row in response) {
@@ -16,15 +14,14 @@ class PeminjamService {
   }
 
   Future<int> getPeminjamanAktif(int idPengguna) async {
-  final data = await supabase
-      .from('peminjaman')
-      .select()
-      .eq('id_pengguna', idPengguna)
-      .eq('status', 'Dipinjam');
+    final data = await supabase
+        .from('peminjaman')
+        .select()
+        .eq('id_pengguna', idPengguna)
+        .eq('status', 'Dipinjam');
 
-  return data.length;
-}
-
+    return data.length;
+  }
 
   Future<int> getTotalRiwayat(int idPeminjam) async {
     final response = await supabase
@@ -36,17 +33,22 @@ class PeminjamService {
   }
 
   Future<List<Map<String, dynamic>>> getRiwayat(int idPeminjam) async {
-    final response = await supabase
+    final data = await supabase
         .from('peminjaman')
         .select('''
-          id_peminjaman,
-          tanggal_pinjam,
-          tanggal_kembali,
-          detail_peminjaman(jumlah)
-        ''')
+        id_peminjaman,
+        tanggal_pinjam,
+        tanggal_kembali,
+        status,
+        detail_peminjaman (
+          id_detail,
+          id_alat,
+          jumlah
+        )
+      ''')
         .eq('id_pengguna', idPeminjam)
         .order('id_peminjaman', ascending: false);
 
-    return response;
+    return List<Map<String, dynamic>>.from(data);
   }
 }

@@ -3,9 +3,35 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 final supabase = Supabase.instance.client;
 
 class PengembalianService {
-  /// Ambil daftar pengembalian
   Future<List<Map<String, dynamic>>> getPengembalian() async {
     try {
+      // Ambil user login
+      final user = supabase.auth.currentUser;
+      if (user == null) throw Exception("User belum login");
+
+      // Ambil id_pengguna dari tabel pengguna
+      final dataPengguna = await supabase
+          .from('pengguna')
+          .select('id_pengguna')
+          .eq('auth_id', user.id)
+          .single();
+
+      final int idPengguna = dataPengguna['id_pengguna'];
+
+      // Ambil daftar id_peminjaman user ini
+      final peminjamanList = await supabase
+          .from('peminjaman')
+          .select('id_peminjaman')
+          .eq('id_pengguna', idPengguna);
+
+      if (peminjamanList.isEmpty) return [];
+
+      final List<int> ids = peminjamanList
+          .map<int>((e) => e['id_peminjaman'])
+          .toList();
+
+      final String orQuery = ids.map((id) => 'id_peminjaman.eq.$id').join(',');
+
       final response = await supabase
           .from('pengembalian')
           .select('''
@@ -14,18 +40,20 @@ class PengembalianService {
             kondisi_setelah,
             catatan,
             total_denda,
-            peminjaman(
+            peminjaman (
               id_peminjaman,
               tanggal_pinjam,
-              pengguna(nama)
+              pengguna (
+                id_pengguna,
+                nama
+              )
             )
           ''')
-          .order('tanggal_pengembalian', ascending: false);
+          .or(orQuery)
+          .order('id_pengembalian', ascending: true);
 
-      // langsung konversi PostgrestList ke List<Map>
-      return List<Map<String, dynamic>>.from(response as List<dynamic>);
+      return List<Map<String, dynamic>>.from(response);
     } catch (e) {
-      // tangani error
       throw Exception('Gagal mengambil data pengembalian: $e');
     }
   }

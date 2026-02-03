@@ -29,7 +29,8 @@ class SupabaseAlatService {
         'kondisi': item['kondisi'] ?? 'Baik',
         'total': item['jumlah_total'],
         'tersedia': item['jumlah_tersedia'],
-        'dipinjam': (item['jumlah_total'] ?? 0) - (item['jumlah_tersedia'] ?? 0),
+        'dipinjam':
+            (item['jumlah_total'] ?? 0) - (item['jumlah_tersedia'] ?? 0),
         'image': item['gambar_alat'] ?? '',
       };
     }).toList();
@@ -53,10 +54,7 @@ class SupabaseAlatService {
     return List<Map<String, dynamic>>.from(response);
   }
 
-  Future<String?> uploadImage({
-    File? mobileFile,
-    Uint8List? webBytes,
-  }) async {
+  Future<String?> uploadImage({File? mobileFile, Uint8List? webBytes}) async {
     if (mobileFile == null && webBytes == null) return null;
 
     try {
@@ -64,13 +62,17 @@ class SupabaseAlatService {
       final path = 'alat/$fileName';
 
       if (kIsWeb && webBytes != null) {
-        await supabase.storage.from('alat-gambar').uploadBinary(
+        await supabase.storage
+            .from('alat-gambar')
+            .uploadBinary(
               path,
               webBytes,
               fileOptions: const FileOptions(contentType: 'image/jpeg'),
             );
       } else if (mobileFile != null) {
-        await supabase.storage.from('alat-gambar').upload(
+        await supabase.storage
+            .from('alat-gambar')
+            .upload(
               path,
               mobileFile,
               fileOptions: const FileOptions(contentType: 'image/jpeg'),

@@ -3,17 +3,13 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 final supabase = Supabase.instance.client;
 
 class PetugasDashboardService {
-  // TOTAL ALAT
   Future<int> getTotalAlat() async {
     final response = await supabase.from('alat').select('id_alat');
     return response.length;
   }
 
-  // TOTAL ALAT TERSEDIA
   Future<int> getAlatTersedia() async {
-    final response = await supabase
-        .from('alat')
-        .select('jumlah_tersedia');
+    final response = await supabase.from('alat').select('jumlah_tersedia');
 
     int total = 0;
     for (var item in response) {
@@ -22,7 +18,6 @@ class PetugasDashboardService {
     return total;
   }
 
-  // PINJAM AKTIF
   Future<int> getPinjamAktif() async {
     final response = await supabase
         .from('peminjaman')
@@ -32,7 +27,6 @@ class PetugasDashboardService {
     return response.length;
   }
 
-  // KEMBALI HARI INI
   Future<int> getKembaliHariIni() async {
     final today = DateTime.now().toIso8601String().substring(0, 10);
 
@@ -44,7 +38,6 @@ class PetugasDashboardService {
     return response.length;
   }
 
-  // AKTIVITAS TERBARU (3 TERATAS)
   Future<List<Map<String, dynamic>>> getAktivitasTerbaru() async {
     final response = await supabase
         .from('log_aktivitas')

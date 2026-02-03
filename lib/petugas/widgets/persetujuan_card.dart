@@ -2,10 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:toolvolt/petugas/service/supabase_peminjaman_service.dart'
     show PeminjamanService;
-import '../widgets/history_card.dart';
-import '../widgets/petugas_bottom_nav.dart';
 
-// ================= APPROVAL CARD =================
 class ApprovalCard extends StatefulWidget {
   final String id;
   final String nama;
@@ -175,18 +172,29 @@ class _ApprovalCardState extends State<ApprovalCard> {
             children: [
               Text(
                 'ID:${widget.id}',
-                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               Row(
                 children: [
                   GestureDetector(
                     onTap: _showApproveDialog,
-                    child: const Icon(Icons.check_circle, color: Colors.green, size: 26),
+                    child: const Icon(
+                      Icons.check_circle,
+                      color: Colors.green,
+                      size: 26,
+                    ),
                   ),
                   const SizedBox(width: 20),
                   GestureDetector(
                     onTap: _showRejectDialog,
-                    child: const Icon(Icons.cancel, color: Colors.red, size: 26),
+                    child: const Icon(
+                      Icons.cancel,
+                      color: Colors.red,
+                      size: 26,
+                    ),
                   ),
                 ],
               ),
@@ -197,47 +205,89 @@ class _ApprovalCardState extends State<ApprovalCard> {
             children: [
               const Icon(Icons.person_outline, size: 18, color: Colors.grey),
               const SizedBox(width: 8),
-              Text(widget.nama, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+              Text(
+                widget.nama,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 8),
           Row(
             children: [
-              const Icon(Icons.calendar_today_outlined, size: 16, color: Colors.grey),
+              const Icon(
+                Icons.calendar_today_outlined,
+                size: 16,
+                color: Colors.grey,
+              ),
               const SizedBox(width: 8),
-              Text(widget.tanggalPinjam, style: const TextStyle(fontSize: 13, color: Colors.grey)),
+              Text(
+                widget.tanggalPinjam,
+                style: const TextStyle(fontSize: 13, color: Colors.grey),
+              ),
             ],
           ),
           const SizedBox(height: 4),
           Row(
             children: [
-              const Icon(Icons.calendar_today_outlined, size: 16, color: Colors.grey),
+              const Icon(
+                Icons.calendar_today_outlined,
+                size: 16,
+                color: Colors.grey,
+              ),
               const SizedBox(width: 8),
-              Text('Kembali: ${widget.tanggalKembali}', style: const TextStyle(fontSize: 13, color: Colors.grey)),
+              Text(
+                'Kembali: ${widget.tanggalKembali}',
+                style: const TextStyle(fontSize: 13, color: Colors.grey),
+              ),
             ],
           ),
           const SizedBox(height: 16),
-          const Text('Alat yang dipinjam:', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+          const Text(
+            'Alat yang dipinjam:',
+            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+          ),
           const SizedBox(height: 6),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                  decoration: BoxDecoration(color: const Color(0xFFF5F5F5), borderRadius: BorderRadius.circular(8)),
-                  child: Text(widget.alat, style: const TextStyle(fontSize: 14)),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF5F5F5),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    widget.alat,
+                    style: const TextStyle(fontSize: 14),
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFBE4A31).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: const Color(0xFFBE4A31), width: 1),
                 ),
-                child: Text('${widget.jumlah} unit', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFFBE4A31))),
+                child: Text(
+                  '${widget.jumlah} unit',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFFBE4A31),
+                  ),
+                ),
               ),
             ],
           ),

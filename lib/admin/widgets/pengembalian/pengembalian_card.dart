@@ -78,7 +78,6 @@ class _PengembalianCardState extends State<PengembalianCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ================= HEADER =================
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -161,7 +160,6 @@ class _PengembalianCardState extends State<PengembalianCard> {
             style: TextStyle(color: Colors.black54, fontSize: 13),
           ),
 
-          // EXPANDED DETAIL
           AnimatedCrossFade(
             firstChild: SizedBox.shrink(),
             secondChild: Column(
@@ -241,7 +239,6 @@ class _PengembalianCardState extends State<PengembalianCard> {
 
                 SizedBox(height: 8),
 
-                // ===================== RINCIAN DENDA =====================
                 Row(
                   children: [
                     Icon(
@@ -271,16 +268,12 @@ class _PengembalianCardState extends State<PengembalianCard> {
     );
   }
 
-  // =======================================================
-  //                   DIALOG EDIT
-  // =======================================================
   void _showEditPengembalianDialog(BuildContext context) {
     const primaryOrange = Color(0xFFFF7A00);
 
     showDialog(
       context: context,
       builder: (dialogContext) {
-        // =============== FIX FORMAT DD/MM/YYYY -> ISO ==================
         DateTime tglISO;
 
         try {

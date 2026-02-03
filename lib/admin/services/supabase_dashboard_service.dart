@@ -3,7 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class SupabaseDashboardService {
   final _supabase = Supabase.instance.client;
 
-  /// ambil aktivitas terbaru
+  //ambil aktivitas terbaru
   Future<List<Map<String, dynamic>>> fetchAktivitasTerbaru() async {
     final res = await _supabase
         .from('log_aktivitas')
@@ -21,7 +21,7 @@ class SupabaseDashboardService {
     return List<Map<String, dynamic>>.from(res);
   }
 
-  /// statistik
+  //statistik
   Future<int> totalAlat() async {
     final res = await _supabase.from('alat').select('id_alat');
     return res.length;

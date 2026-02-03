@@ -10,10 +10,7 @@ import '../../services/supabase_alat_service.dart';
 class TambahAlatDialog extends StatefulWidget {
   final VoidCallback onSuccess;
 
-  const TambahAlatDialog({
-    super.key,
-    required this.onSuccess,
-  });
+  const TambahAlatDialog({super.key, required this.onSuccess});
 
   @override
   State<TambahAlatDialog> createState() => _TambahAlatDialogState();
@@ -81,7 +78,9 @@ class _TambahAlatDialogState extends State<TambahAlatDialog> {
     final nama = namaCtrl.text.trim();
     final total = int.tryParse(totalCtrl.text) ?? 0;
     final tersedia = int.tryParse(tersediaCtrl.text) ?? 0;
-    final kondisi = kondisiCtrl.text.trim().isEmpty ? 'Baik' : kondisiCtrl.text.trim();
+    final kondisi = kondisiCtrl.text.trim().isEmpty
+        ? 'Baik'
+        : kondisiCtrl.text.trim();
 
     if (nama.isEmpty ||
         total <= 0 ||
@@ -116,13 +115,13 @@ class _TambahAlatDialogState extends State<TambahAlatDialog> {
       );
 
       if (success && mounted) {
-  Navigator.pop(context); // tutup dialog dulu
-  OverlayMessage.show(
-    context: context,
-    message: 'Alat berhasil ditambahkan!',
-  );
-  widget.onSuccess(); // baru reload data
-}
+        Navigator.pop(context);
+        OverlayMessage.show(
+          context: context,
+          message: 'Alat berhasil ditambahkan!',
+        );
+        widget.onSuccess();
+      }
     } catch (e) {
       if (mounted) {
         OverlayMessage.show(
@@ -172,7 +171,10 @@ class _TambahAlatDialogState extends State<TambahAlatDialog> {
                         if (isLoadingKategori)
                           const Center(child: CircularProgressIndicator())
                         else if (kategoriList.isEmpty)
-                          const Text('Tidak ada kategori', style: TextStyle(color: Colors.red))
+                          const Text(
+                            'Tidak ada kategori',
+                            style: TextStyle(color: Colors.red),
+                          )
                         else
                           DropdownButtonFormField<String>(
                             value: selectedKategori,
@@ -180,9 +182,13 @@ class _TambahAlatDialogState extends State<TambahAlatDialog> {
                             isExpanded: true,
                             items: kategoriList.map((kat) {
                               final name = kat['nama_kategori'] as String;
-                              return DropdownMenuItem(value: name, child: Text(name));
+                              return DropdownMenuItem(
+                                value: name,
+                                child: Text(name),
+                              );
                             }).toList(),
-                            onChanged: (v) => setState(() => selectedKategori = v),
+                            onChanged: (v) =>
+                                setState(() => selectedKategori = v),
                             decoration: _inputDecoration(),
                           ),
                       ],
@@ -260,20 +266,36 @@ class _TambahAlatDialogState extends State<TambahAlatDialog> {
                     onPressed: () => Navigator.pop(context),
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(color: Color(0xFFFF7A00)),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 28,
+                        vertical: 12,
+                      ),
                     ),
-                    child: const Text('Batal', style: TextStyle(color: Colors.black)),
+                    child: const Text(
+                      'Batal',
+                      style: TextStyle(color: Colors.black),
+                    ),
                   ),
                   const SizedBox(width: 16),
                   ElevatedButton(
                     onPressed: _submit,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFFF7A00),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 28,
+                        vertical: 12,
+                      ),
                     ),
-                    child: const Text('Tambah', style: TextStyle(color: Colors.white)),
+                    child: const Text(
+                      'Tambah',
+                      style: TextStyle(color: Colors.white),
+                    ),
                   ),
                 ],
               ),
@@ -287,7 +309,11 @@ class _TambahAlatDialogState extends State<TambahAlatDialog> {
   Widget _buildImagePreview() {
     if (selectedImageMobile == null && selectedImageBytesWeb == null) {
       return const Center(
-        child: Icon(Icons.add_photo_alternate_outlined, size: 40, color: Colors.grey),
+        child: Icon(
+          Icons.add_photo_alternate_outlined,
+          size: 40,
+          color: Colors.grey,
+        ),
       );
     }
 
@@ -295,8 +321,8 @@ class _TambahAlatDialogState extends State<TambahAlatDialog> {
       borderRadius: BorderRadius.circular(16),
       child: kIsWeb
           ? (selectedImageBytesWeb != null
-              ? Image.memory(selectedImageBytesWeb!, fit: BoxFit.cover)
-              : const Center(child: CircularProgressIndicator()))
+                ? Image.memory(selectedImageBytesWeb!, fit: BoxFit.cover)
+                : const Center(child: CircularProgressIndicator()))
           : Image.file(selectedImageMobile!, fit: BoxFit.cover),
     );
   }

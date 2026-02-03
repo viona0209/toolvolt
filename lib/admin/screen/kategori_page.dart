@@ -38,9 +38,9 @@ class _KategoriScreenState extends State<KategoriScreen> {
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal memuat kategori: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Gagal memuat kategori: $e')));
       }
     } finally {
       setState(() => _isLoading = false);
@@ -58,9 +58,9 @@ class _KategoriScreenState extends State<KategoriScreen> {
       await _loadKategori();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal menambah kategori: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Gagal menambah kategori: $e')));
       }
     }
   }
@@ -80,9 +80,9 @@ class _KategoriScreenState extends State<KategoriScreen> {
       await _loadKategori();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal mengedit kategori: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Gagal mengedit kategori: $e')));
       }
     }
   }
@@ -100,7 +100,11 @@ class _KategoriScreenState extends State<KategoriScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal menghapus kategori: $e\n(Mungkin masih ada alat yang terkait?)')),
+          SnackBar(
+            content: Text(
+              'Gagal menghapus kategori: $e\n(Mungkin masih ada alat yang terkait?)',
+            ),
+          ),
         );
       }
     }
@@ -109,31 +113,23 @@ class _KategoriScreenState extends State<KategoriScreen> {
   void _showTambahDialog() {
     showDialog(
       context: context,
-      builder: (context) => TambahKategoriDialog(
-        onTambah: _tambahKategori,
-      ),
+      builder: (context) => TambahKategoriDialog(onTambah: _tambahKategori),
     );
   }
 
   void _showEditDialog(int id, String namaLama) {
     showDialog(
       context: context,
-      builder: (context) => EditKategoriDialog(
-        id: id,
-        namaLama: namaLama,
-        onEdit: _editKategori,
-      ),
+      builder: (context) =>
+          EditKategoriDialog(id: id, namaLama: namaLama, onEdit: _editKategori),
     );
   }
 
   void _showHapusDialog(int id, String nama) {
     showDialog(
       context: context,
-      builder: (context) => HapusKategoriDialog(
-        id: id,
-        nama: nama,
-        onHapus: _hapusKategori,
-      ),
+      builder: (context) =>
+          HapusKategoriDialog(id: id, nama: nama, onHapus: _hapusKategori),
     );
   }
 
@@ -157,7 +153,11 @@ class _KategoriScreenState extends State<KategoriScreen> {
               Padding(
                 padding: const EdgeInsets.only(top: 20),
                 child: IconButton(
-                  icon: const Icon(Icons.arrow_back, size: 32, color: Colors.black),
+                  icon: const Icon(
+                    Icons.arrow_back,
+                    size: 32,
+                    color: Colors.black,
+                  ),
                   onPressed: () => Navigator.pop(context),
                 ),
               ),
@@ -182,20 +182,20 @@ class _KategoriScreenState extends State<KategoriScreen> {
                 child: _isLoading
                     ? const Center(child: CircularProgressIndicator())
                     : _kategoriList.isEmpty
-                        ? const Center(child: Text('Belum ada kategori'))
-                        : ListView.builder(
-                            itemCount: _kategoriList.length,
-                            itemBuilder: (context, index) {
-                              final item = _kategoriList[index];
-                              final id = item['id_kategori'] as int;
-                              final nama = item['nama_kategori'] as String;
-                              return KategoriCard(
-                                title: nama,
-                                onEdit: () => _showEditDialog(id, nama),
-                                onDelete: () => _showHapusDialog(id, nama),
-                              );
-                            },
-                          ),
+                    ? const Center(child: Text('Belum ada kategori'))
+                    : ListView.builder(
+                        itemCount: _kategoriList.length,
+                        itemBuilder: (context, index) {
+                          final item = _kategoriList[index];
+                          final id = item['id_kategori'] as int;
+                          final nama = item['nama_kategori'] as String;
+                          return KategoriCard(
+                            title: nama,
+                            onEdit: () => _showEditDialog(id, nama),
+                            onDelete: () => _showHapusDialog(id, nama),
+                          );
+                        },
+                      ),
               ),
               const SizedBox(height: 16),
             ],
