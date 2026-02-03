@@ -128,14 +128,14 @@ class _PetugasPeminjamanPageState extends State<PetugasPeminjamanPage> {
                   alat: detail['alat']['nama_alat'] ?? '-',
                   jumlah: detail['jumlah'] ?? 0,
                   onApproved: () async {
-                    await _updateStatus(p['id_peminjaman'], 'disetujui');
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Peminjaman disetujui'),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-                  },
+  await _updateStatus(p['id_peminjaman'], 'dipinjam');
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(
+      content: Text('Peminjaman disetujui & sedang dipinjam'),
+      backgroundColor: Colors.green,
+    ),
+  );
+},
                   onRejected: () async {
                     await _updateStatus(p['id_peminjaman'], 'ditolak');
                     ScaffoldMessenger.of(context).showSnackBar(

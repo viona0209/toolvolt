@@ -36,20 +36,28 @@ class PengembalianPeminjamCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8),
+      margin: const EdgeInsets.symmetric(vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade300),
+
+        // ✅ BORDER KUNING
+        border: Border.all(
+          color: Colors.amber.shade600,
+          width: 1.4,
+        ),
+
+        // ✅ DROP SHADOW JELAS
         boxShadow: [
           BoxShadow(
-            color: Colors.black12.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.12),
+            blurRadius: 12,
+            spreadRadius: 1,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -67,8 +75,8 @@ class PengembalianPeminjamCard extends StatelessWidget {
               if (tanggalKembali != null)
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
+                    horizontal: 12,
+                    vertical: 5,
                   ),
                   decoration: BoxDecoration(
                     color: Colors.green.shade700,
@@ -113,15 +121,15 @@ class PengembalianPeminjamCard extends StatelessWidget {
           ],
 
           if (kondisiSetelah != null) ...[
-            const SizedBox(height: 4),
+            const SizedBox(height: 6),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
               decoration: BoxDecoration(
                 color: getKondisiColor(kondisiSetelah!).withOpacity(0.15),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                   color: getKondisiColor(kondisiSetelah!),
-                  width: 1,
+                  width: 1.2,
                 ),
               ),
               child: Text(
@@ -136,7 +144,7 @@ class PengembalianPeminjamCard extends StatelessWidget {
           ],
 
           if (catatan != null) ...[
-            const SizedBox(height: 4),
+            const SizedBox(height: 6),
             Text(
               "Catatan : $catatan",
               style: TextStyle(color: Colors.grey.shade600, fontSize: 13),

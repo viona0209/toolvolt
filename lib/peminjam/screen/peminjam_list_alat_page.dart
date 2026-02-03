@@ -49,8 +49,9 @@ class _PeminjamListAlatPageState extends State<PeminjamListAlatPage> {
 
     setState(() {
       filteredList = alatList.where((item) {
-        final nama = item['nama_alat'].toString().toLowerCase();
-        final kategori = item['kategori']['nama_kategori'].toString();
+        final nama = item['nama_alat']?.toString().toLowerCase() ?? '';
+        final kategori =
+            item['kategori']?['nama_kategori']?.toString() ?? '';
 
         final matchSearch = nama.contains(keyword);
         final matchKategori = selectedKategori == 'kategori'
@@ -83,15 +84,11 @@ class _PeminjamListAlatPageState extends State<PeminjamListAlatPage> {
 
       final int idPeminjam = userData['id_pengguna'];
 
-      final peminjaman = await supabase
-          .from('peminjaman')
-          .insert({
-            'id_pengguna': idPeminjam,
-            'tanggal_pinjam': DateTime.now().toIso8601String(),
-            'status': 'Menunggu',
-          })
-          .select()
-          .single();
+      final peminjaman = await supabase.from('peminjaman').insert({
+        'id_pengguna': idPeminjam,
+        'tanggal_pinjam': DateTime.now().toIso8601String(),
+        'status': 'menunggu',
+      }).select().single();
 
       final int idPeminjaman = peminjaman['id_peminjaman'];
 
@@ -154,7 +151,7 @@ class _PeminjamListAlatPageState extends State<PeminjamListAlatPage> {
                           ),
                           child: TextField(
                             controller: searchController,
-                            onChanged: (v) => applyFilter(),
+                            onChanged: (_) => applyFilter(),
                             decoration: InputDecoration(
                               hintText: 'Cari alat...',
                               prefixIcon: Icon(
@@ -221,24 +218,27 @@ class _PeminjamListAlatPageState extends State<PeminjamListAlatPage> {
               child: isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : filteredList.isEmpty
-                  ? const Center(child: Text("Tidak ada alat ditemukan"))
-                  : ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      itemCount: filteredList.length,
-                      itemBuilder: (context, index) {
-                        final alat = filteredList[index];
+                      ? const Center(child: Text("Tidak ada alat ditemukan"))
+                      : ListView.builder(
+                          padding:
+                              const EdgeInsets.symmetric(horizontal: 16),
+                          itemCount: filteredList.length,
+                          itemBuilder: (context, index) {
+                            final alat = filteredList[index];
 
-                        return AlatCard(
-                          namaAlat: alat['nama_alat'],
-                          kategori: alat['kategori']['nama_kategori'],
-                          kondisi: 'Baik',
-                          imageAsset: alat['gambar_alat'],
-                          jumlahKondisiBaik: alat['jumlah_tersedia'],
-                          totalItem: alat['jumlah_total'],
-                          ajukanPinjam: () => ajukanPeminjaman(alat['id_alat']),
-                        );
-                      },
-                    ),
+                            return AlatCard(
+                              namaAlat: alat['nama_alat'] ?? '-',
+                              kategori:
+                                  alat['kategori']?['nama_kategori'] ?? '-',
+                              kondisi: 'Baik',
+                              imageAsset: alat['gambar_alat'],
+                              jumlahKondisiBaik: alat['jumlah_tersedia'] ?? 0,
+                              totalItem: alat['jumlah_total'] ?? 0,
+                              ajukanPinjam: () =>
+                                  ajukanPeminjaman(alat['id_alat']),
+                            );
+                          },
+                        ),
             ),
           ],
         ),
@@ -248,11 +248,8 @@ class _PeminjamListAlatPageState extends State<PeminjamListAlatPage> {
         onTap: (index) {
           setState(() => _currentIndex = index);
 
-          Widget? page;
+          Widget page;
           switch (index) {
-            case 0:
-              page = const PeminjamListAlatPage();
-              break;
             case 1:
               page = const PeminjamPeminjamanPage();
               break;
@@ -262,11 +259,13 @@ class _PeminjamListAlatPageState extends State<PeminjamListAlatPage> {
             case 3:
               page = const PeminjamPengembalianPage();
               break;
+            default:
+              page = const PeminjamListAlatPage();
           }
 
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (_) => page!),
+            MaterialPageRoute(builder: (_) => page),
           );
         },
       ),
