@@ -8,9 +8,7 @@ class LogAktivitasPage extends StatefulWidget {
   State<LogAktivitasPage> createState() => _LogAktivitasPageState();
 }
 
-/* ============================
-   MODEL DATA LOG AKTIVITAS
-============================ */
+//MODEL DATA LOG AKTIVITAS
 class LogAktivitas {
   final String aktivitas;
   final String nama;
@@ -52,9 +50,7 @@ class _LogAktivitasPageState extends State<LogAktivitasPage> {
     loadLogAktivitas();
   }
 
-  /* ============================
-     AMBIL & FILTER LOG INTI
-  ============================ */
+  //AMBIL & FILTER LOG INTI
   Future<void> loadLogAktivitas() async {
     try {
       final response = await supabase
@@ -92,9 +88,7 @@ class _LogAktivitasPageState extends State<LogAktivitasPage> {
     }
   }
 
-  /* ============================
-     RANGKUM TEKS AKTIVITAS
-  ============================ */
+  //RANGKUM TEKS AKTIVITAS
   String ringkasAktivitas(LogAktivitas log) {
     final text = log.aktivitas.toLowerCase();
     final nama = log.nama;

@@ -41,14 +41,10 @@ class PengembalianPeminjamCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-
-        // ✅ BORDER KUNING
         border: Border.all(
           color: Colors.amber.shade600,
           width: 1.4,
         ),
-
-        // ✅ DROP SHADOW JELAS
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.12),
@@ -142,7 +138,6 @@ class PengembalianPeminjamCard extends StatelessWidget {
               ),
             ),
           ],
-
           if (catatan != null) ...[
             const SizedBox(height: 6),
             Text(

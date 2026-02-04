@@ -11,7 +11,6 @@ class PenggunaService {
           .select()
           .order('id_pengguna', ascending: true);
 
-      //Langsung assign
       List<Map<String, dynamic>> result = [];
       for (var item in response) {
         result.add(Map<String, dynamic>.from(item));

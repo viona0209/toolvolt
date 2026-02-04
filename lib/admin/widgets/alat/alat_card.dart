@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:top_snackbar_flutter/custom_snack_bar.dart';
+import 'package:top_snackbar_flutter/top_snack_bar.dart';
 
 class AlatCard extends StatefulWidget {
   final int idAlat;
@@ -264,78 +266,159 @@ class _AlatCardState extends State<AlatCard> {
 
     showDialog(
       context: context,
-      builder: (dialogContext) => Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24),
-          side: const BorderSide(color: primaryOrange, width: 2.0),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'Hapus Alat',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Apakah kamu yakin ingin menghapus\n${widget.nama} ini?',
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 16),
-              ),
-              const SizedBox(height: 32),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  OutlinedButton(
-                    onPressed: () => Navigator.pop(dialogContext),
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: primaryOrange, width: 1.5),
-                      foregroundColor: primaryOrange,
-                      minimumSize: const Size(120, 48),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: const Text('Batal'),
-                  ),
-                  const SizedBox(width: 16),
-                  ElevatedButton(
-                    onPressed: () async {
-                      try {
-                        await supabase
-                            .from('alat')
-                            .delete()
-                            .eq('id_alat', widget.idAlat);
+      builder: (dialogContext) => LayoutBuilder(
+        builder: (context, constraints) {
+          final width = constraints.maxWidth;
 
-                        if (mounted) {
-                          showTopMessage(context, 'Alat berhasil dihapus');
-                          widget.onRefresh?.call();
-                        }
-                      } catch (e) {
-                        if (mounted) {
-                          showTopMessage(context, 'Gagal menghapus: $e');
-                        }
-                      }
-                      Navigator.pop(dialogContext);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: primaryOrange,
-                      foregroundColor: Colors.white,
-                      minimumSize: const Size(140, 48),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+          // Ukuran responsif
+          final paddingHorizontal = width * 0.05;
+          final paddingVertical = width * 0.05;
+          final buttonHeight = width * 0.12 > 48 ? 48.0 : width * 0.12;
+          final buttonSpacing = width * 0.04;
+          final fontSizeTitle = width * 0.05 > 20 ? 20.0 : width * 0.05;
+          final fontSizeText = width * 0.04 > 16 ? 16.0 : width * 0.04;
+
+          return Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+              side: const BorderSide(color: primaryOrange, width: 2.0),
+            ),
+            child: SingleChildScrollView(
+              // aman untuk layar kecil
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(
+                  paddingHorizontal,
+                  paddingVertical,
+                  paddingHorizontal,
+                  paddingVertical,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Hapus Alat',
+                      style: TextStyle(
+                        fontSize: fontSizeTitle,
+                        fontWeight: FontWeight.w700,
                       ),
-                      elevation: 2,
                     ),
-                    child: const Text('Hapus'),
-                  ),
-                ],
+                    SizedBox(height: paddingVertical * 0.5),
+                    Text(
+                      'Apakah kamu yakin ingin menghapus\n${widget.nama} ini?',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: fontSizeText),
+                    ),
+                    SizedBox(height: paddingVertical),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: SizedBox(
+                            height: buttonHeight,
+                            child: OutlinedButton(
+                              onPressed: () => Navigator.pop(dialogContext),
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(
+                                  color: primaryOrange,
+                                  width: 1.5,
+                                ),
+                                foregroundColor: primaryOrange,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: Text(
+                                'Batal',
+                                style: TextStyle(fontSize: fontSizeText),
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: buttonSpacing),
+                        Expanded(
+                          child: SizedBox(
+                            height: buttonHeight,
+                            child: ElevatedButton(
+                              onPressed: () async {
+                                try {
+                                  await supabase
+                                      .from('alat')
+                                      .delete()
+                                      .eq('id_alat', widget.idAlat);
+
+                                  if (mounted) {
+                                    showTopSnackBar(
+                                      Overlay.of(context),
+                                      Material(
+                                        color: Colors.transparent,
+                                        child: Container(
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: 16,
+                                            vertical: 12,
+                                          ),
+                                          margin: EdgeInsets.all(8),
+                                          decoration: BoxDecoration(
+                                            color: Colors.orange,
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              Icon(
+                                                Icons.check_circle,
+                                                color: Colors.white,
+                                              ),
+                                              SizedBox(width: 8),
+                                              Expanded(
+                                                child: Text(
+                                                  'Alat berhasil dihapus',
+                                                  style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                    widget.onRefresh?.call();
+                                  }
+                                } catch (e) {
+                                  if (mounted) {
+                                    showTopMessage(
+                                      context,
+                                      'Gagal menghapus: $e',
+                                    );
+                                  }
+                                }
+                                Navigator.pop(dialogContext);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: primaryOrange,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                elevation: 2,
+                              ),
+                              child: Text(
+                                'Hapus',
+                                style: TextStyle(fontSize: fontSizeText),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -448,19 +531,14 @@ class __EditAlatDialogState extends State<_EditAlatDialog> {
     );
 
     overlay?.insert(overlayEntry);
-
-    Future.delayed(const Duration(seconds: 2), () {
-      overlayEntry.remove();
-    });
+    Future.delayed(const Duration(seconds: 2), () => overlayEntry.remove());
   }
 
   Future<String?> _uploadNewImage() async {
     if (pickedFile == null) return widget.initialImagePath;
-
     try {
       final fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
       final path = 'alat/$fileName';
-
       if (kIsWeb) {
         final bytes = await pickedFile!.readAsBytes();
         await supabase.storage
@@ -479,15 +557,10 @@ class __EditAlatDialogState extends State<_EditAlatDialog> {
               fileOptions: const FileOptions(contentType: 'image/jpeg'),
             );
       }
-
       return supabase.storage.from('alat-gambar').getPublicUrl(path);
-    } catch (e, stack) {
-      debugPrint('Upload gambar error: $e\n$stack');
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Gagal upload gambar: $e')));
-      }
+    } catch (e) {
+      debugPrint('Upload gambar error: $e');
+      if (mounted) showTopMessage(context, 'Gagal upload gambar: $e');
       return null;
     }
   }
@@ -499,7 +572,6 @@ class __EditAlatDialogState extends State<_EditAlatDialog> {
           .select('id_kategori')
           .eq('nama_kategori', namaKategori)
           .maybeSingle();
-
       return res?['id_kategori'] as int?;
     } catch (_) {
       return null;
@@ -508,243 +580,341 @@ class __EditAlatDialogState extends State<_EditAlatDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(24),
-        side: BorderSide(color: widget.primaryOrange, width: 2.0),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Center(
-                child: Text(
-                  'Edit Alat',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
-                ),
-              ),
-              const SizedBox(height: 28),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final paddingHorizontal = width * 0.05;
+        final paddingVertical = width * 0.05;
+        final buttonHeight = width * 0.12 > 48 ? 48.0 : width * 0.12;
+        final buttonSpacing = width * 0.04;
+        final fontSizeTitle = width * 0.05 > 20 ? 20.0 : width * 0.05;
+        final fontSizeText = width * 0.04 > 16 ? 16.0 : width * 0.04;
 
-              _buildLabel('Nama Alat'),
-              TextField(
-                controller: nameController,
-                decoration: _inputDecoration(),
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+            side: BorderSide(color: widget.primaryOrange, width: 2.0),
+          ),
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(
+                paddingHorizontal,
+                paddingVertical,
+                paddingHorizontal,
+                paddingVertical,
               ),
-              const SizedBox(height: 16),
-
-              Row(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    flex: 3,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildLabel('Kategori'),
-                        if (widget.isLoadingKategori)
-                          const Center(child: CircularProgressIndicator())
-                        else if (widget.kategoriOptions.isEmpty)
-                          const Text(
-                            'Tidak ada kategori tersedia',
-                            style: TextStyle(color: Colors.red),
-                          )
-                        else
-                          DropdownButtonFormField<String>(
-                            value: selectedKategori,
-                            hint: const Text('Pilih kategori'),
-                            isExpanded: true,
-                            decoration: _inputDecoration(),
-                            items: widget.kategoriOptions
-                                .map(
-                                  (kat) => DropdownMenuItem(
-                                    value: kat,
-                                    child: Text(kat),
-                                  ),
-                                )
-                                .toList(),
-                            onChanged: (val) =>
-                                setState(() => selectedKategori = val),
-                          ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    flex: 2,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildLabel('Total Stok'),
-                        TextField(
-                          controller: totalController,
-                          keyboardType: TextInputType.number,
-                          decoration: _inputDecoration(),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildLabel('Kondisi'),
-                        TextField(
-                          controller: kondisiController,
-                          decoration: _inputDecoration(),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildLabel('Tersedia'),
-                        TextField(
-                          controller: tersediaController,
-                          keyboardType: TextInputType.number,
-                          decoration: _inputDecoration(),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-
-              _buildLabel('Gambar (tap untuk ganti)'),
-              GestureDetector(
-                onTap: () async {
-                  final picker = ImagePicker();
-                  final img = await picker.pickImage(
-                    source: ImageSource.gallery,
-                  );
-                  if (img != null) {
-                    setState(() {
-                      pickedFile = img;
-                      webImageBytes = null;
-                    });
-                  }
-                },
-                child: Container(
-                  height: 140,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: widget.primaryOrange, width: 1.5),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: _buildImagePreview(),
-                ),
-              ),
-              const SizedBox(height: 32),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  OutlinedButton(
-                    onPressed: () => Navigator.pop(context),
-                    style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: widget.primaryOrange, width: 1.5),
-                      foregroundColor: widget.primaryOrange,
-                      minimumSize: const Size(120, 48),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                  Center(
+                    child: Text(
+                      'Edit Alat',
+                      style: TextStyle(
+                        fontSize: fontSizeTitle,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
-                    child: const Text('Batal'),
                   ),
-                  const SizedBox(width: 16),
-                  ElevatedButton(
-                    onPressed: () async {
-                      final namaBaru = nameController.text.trim();
-                      final totalBaru =
-                          int.tryParse(totalController.text) ??
-                          widget.initialTotal;
-                      final tersediaBaru =
-                          int.tryParse(tersediaController.text) ??
-                          widget.initialTersedia;
+                  SizedBox(height: paddingVertical),
+                  _buildLabel('Nama Alat'),
+                  TextField(
+                    controller: nameController,
+                    decoration: _inputDecoration(),
+                  ),
+                  SizedBox(height: 16),
 
-                      if (namaBaru.isEmpty ||
-                          selectedKategori == null ||
-                          totalBaru < 0 ||
-                          tersediaBaru < 0 ||
-                          tersediaBaru > totalBaru) {
-                        showTopMessage(context, 'Lengkapi data dengan benar');
-                        return;
-                      }
-
-                      try {
-                        String? newImageUrl = widget.initialImagePath;
-
-                        if (pickedFile != null) {
-                          newImageUrl = await _uploadNewImage();
-                          if (newImageUrl == null) return;
-                        }
-
-                        final idKategori = await _getKategoriId(
-                          selectedKategori!,
-                        );
-                        if (idKategori == null) {
-                          showTopMessage(context, 'Kategori tidak ditemukan');
-                          return;
-                        }
-
-                        await supabase
-                            .from('alat')
-                            .update({
-                              'nama_alat': namaBaru,
-                              'id_kategori': idKategori,
-                              'kondisi': kondisiController.text.trim().isEmpty
-                                  ? 'Baik'
-                                  : kondisiController.text.trim(),
-                              'jumlah_total': totalBaru,
-                              'jumlah_tersedia': tersediaBaru,
-                              'gambar_alat': newImageUrl,
-                            })
-                            .eq('id_alat', widget.idAlat);
-
-                        if (!mounted) return;
-                        widget.onSuccess();
-                        Navigator.pop(context);
-                        showTopMessage(context, 'Alat berhasil diperbarui');
-                      } catch (e) {
-                        if (mounted) {
-                          showTopMessage(
-                            context,
-                            'Gagal menyimpan perubahan: $e',
-                          );
-                        }
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        flex: 3,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildLabel('Kategori'),
+                            widget.isLoadingKategori
+                                ? const Center(
+                                    child: CircularProgressIndicator(),
+                                  )
+                                : widget.kategoriOptions.isEmpty
+                                ? const Text(
+                                    'Tidak ada kategori tersedia',
+                                    style: TextStyle(color: Colors.red),
+                                  )
+                                : DropdownButtonFormField<String>(
+                                    value: selectedKategori,
+                                    hint: const Text('Pilih kategori'),
+                                    isExpanded: true,
+                                    decoration: _inputDecoration(),
+                                    items: widget.kategoriOptions
+                                        .map(
+                                          (kat) => DropdownMenuItem(
+                                            value: kat,
+                                            child: Text(kat),
+                                          ),
+                                        )
+                                        .toList(),
+                                    onChanged: (val) =>
+                                        setState(() => selectedKategori = val),
+                                  ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        flex: 2,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildLabel('Total Stok'),
+                            TextField(
+                              controller: totalController,
+                              keyboardType: TextInputType.number,
+                              decoration: _inputDecoration(),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildLabel('Kondisi'),
+                            TextField(
+                              controller: kondisiController,
+                              decoration: _inputDecoration(),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildLabel('Tersedia'),
+                            TextField(
+                              controller: tersediaController,
+                              keyboardType: TextInputType.number,
+                              decoration: _inputDecoration(),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  _buildLabel('Gambar (tap untuk ganti)'),
+                  GestureDetector(
+                    onTap: () async {
+                      final picker = ImagePicker();
+                      final img = await picker.pickImage(
+                        source: ImageSource.gallery,
+                      );
+                      if (img != null) {
+                        setState(() {
+                          pickedFile = img;
+                          webImageBytes = null;
+                        });
                       }
                     },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: widget.primaryOrange,
-                      foregroundColor: Colors.white,
-                      minimumSize: const Size(140, 48),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      height: 140,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: widget.primaryOrange,
+                          width: 1.5,
+                        ),
+                        borderRadius: BorderRadius.circular(16),
                       ),
-                      elevation: 2,
+                      child: _buildImagePreview(),
                     ),
-                    child: const Text('Simpan'),
+                  ),
+                  SizedBox(height: 32),
+
+                  // Tombol responsif
+                  Row(
+                    children: [
+                      Expanded(
+                        child: SizedBox(
+                          height: buttonHeight,
+                          child: OutlinedButton(
+                            onPressed: () => Navigator.pop(context),
+                            style: OutlinedButton.styleFrom(
+                              side: BorderSide(
+                                color: widget.primaryOrange,
+                                width: 1.5,
+                              ),
+                              foregroundColor: widget.primaryOrange,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: Text(
+                              'Batal',
+                              style: TextStyle(fontSize: fontSizeText),
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: buttonSpacing),
+                      Expanded(
+                        child: SizedBox(
+                          height: buttonHeight,
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              // Validasi dan simpan data
+                              final namaBaru = nameController.text.trim();
+                              final totalBaru =
+                                  int.tryParse(totalController.text) ??
+                                  widget.initialTotal;
+                              final tersediaBaru =
+                                  int.tryParse(tersediaController.text) ??
+                                  widget.initialTersedia;
+
+                              if (namaBaru.isEmpty ||
+                                  selectedKategori == null ||
+                                  totalBaru < 0 ||
+                                  tersediaBaru < 0 ||
+                                  tersediaBaru > totalBaru) {
+                                showTopMessage(
+                                  context,
+                                  'Lengkapi data dengan benar',
+                                );
+                                return;
+                              }
+
+                              try {
+                                String? newImageUrl = widget.initialImagePath;
+                                if (pickedFile != null) {
+                                  newImageUrl = await _uploadNewImage();
+                                  if (newImageUrl == null) return;
+                                }
+
+                                final idKategori = await _getKategoriId(
+                                  selectedKategori!,
+                                );
+                                if (idKategori == null) {
+                                  showTopMessage(
+                                    context,
+                                    'Kategori tidak ditemukan',
+                                  );
+                                  return;
+                                }
+
+                                await supabase
+                                    .from('alat')
+                                    .update({
+                                      'nama_alat': namaBaru,
+                                      'id_kategori': idKategori,
+                                      'kondisi':
+                                          kondisiController.text.trim().isEmpty
+                                          ? 'Baik'
+                                          : kondisiController.text.trim(),
+                                      'jumlah_total': totalBaru,
+                                      'jumlah_tersedia': tersediaBaru,
+                                      'gambar_alat': newImageUrl,
+                                    })
+                                    .eq('id_alat', widget.idAlat);
+
+                                if (!mounted) return;
+                                widget.onSuccess();
+                                Navigator.pop(context);
+                                showTopSnackBar(
+                                  Overlay.of(context),
+                                  Material(
+                                    color: Colors.transparent,
+                                    child: Container(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 12,
+                                      ),
+                                      margin: EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: Colors.orange,
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            Icons.check_circle,
+                                            color: Colors.white,
+                                          ),
+                                          SizedBox(width: 8),
+                                          Expanded(
+                                            child: Text(
+                                              'Alat berhasil diedit',
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              } catch (e) {
+                                if (mounted)
+                                  showTopMessage(
+                                    context,
+                                    'Gagal menyimpan perubahan: $e',
+                                  );
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: widget.primaryOrange,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              elevation: 2,
+                            ),
+                            child: Text(
+                              'Simpan',
+                              style: TextStyle(fontSize: fontSizeText),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
+
+  Widget _buildLabel(String text) => Padding(
+    padding: const EdgeInsets.only(bottom: 6),
+    child: Text(
+      text,
+      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+    ),
+  );
+
+  InputDecoration _inputDecoration() => InputDecoration(
+    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(14),
+      borderSide: BorderSide(color: widget.primaryOrange),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(14),
+      borderSide: BorderSide(color: widget.primaryOrange, width: 2),
+    ),
+  );
 
   Widget _buildImagePreview() {
     if (pickedFile != null) {
@@ -782,8 +952,7 @@ class __EditAlatDialogState extends State<_EditAlatDialog> {
       return Image.network(
         widget.initialImagePath,
         fit: BoxFit.cover,
-        loadingBuilder: (context, child, loadingProgress) =>
-            loadingProgress == null
+        loadingBuilder: (context, child, progress) => progress == null
             ? child
             : const Center(child: CircularProgressIndicator()),
         errorBuilder: (_, __, ___) =>
@@ -802,24 +971,4 @@ class __EditAlatDialogState extends State<_EditAlatDialog> {
       ),
     );
   }
-
-  Widget _buildLabel(String text) => Padding(
-    padding: const EdgeInsets.only(bottom: 6),
-    child: Text(
-      text,
-      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-    ),
-  );
-
-  InputDecoration _inputDecoration() => InputDecoration(
-    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-    enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(14),
-      borderSide: const BorderSide(color: Color(0xFFFF8E01)),
-    ),
-    focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(14),
-      borderSide: const BorderSide(color: Color(0xFFFF8E01), width: 2),
-    ),
-  );
 }

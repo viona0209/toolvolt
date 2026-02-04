@@ -7,6 +7,7 @@ import '../widgets/petugas_bottom_nav.dart';
 import 'petugas_dashboard.dart';
 import 'petugas_laporan_page.dart';
 import 'petugas_peminjaman_page.dart';
+import 'package:top_snackbar_flutter/top_snack_bar.dart';
 
 final supabase = Supabase.instance.client;
 
@@ -20,7 +21,6 @@ class PetugasPengembalianPage extends StatefulWidget {
 
 class _PetugasPengembalianPageState extends State<PetugasPengembalianPage> {
   int _currentIndex = 1;
-
   final PengembalianService _service = PengembalianService();
 
   List<Map<String, dynamic>> belumKembali = [];
@@ -35,14 +35,12 @@ class _PetugasPengembalianPageState extends State<PetugasPengembalianPage> {
   }
 
   Future<void> initPage() async {
-    await getCurrentUserId(); // ambil ID petugas yang login
+    await getCurrentUserId();
     await loadData();
   }
 
-  // Ambil ID pengguna login dari tabel pengguna berdasarkan auth_id Supabase
   Future<void> getCurrentUserId() async {
     final currentUser = supabase.auth.currentUser;
-
     if (currentUser != null) {
       try {
         final userData = await supabase
@@ -55,7 +53,7 @@ class _PetugasPengembalianPageState extends State<PetugasPengembalianPage> {
           currentUserId = userData['id_pengguna'];
         });
       } catch (e) {
-        print('Gagal ambil currentUserId: $e');
+        _showTopSnackBar('Gagal ambil data user: $e', isError: true);
       }
     }
   }
@@ -67,17 +65,14 @@ class _PetugasPengembalianPageState extends State<PetugasPengembalianPage> {
       final dataBelum = await _service.getBelumDikembalikan();
       final dataRiwayat = await _service.getRiwayatPengembalian();
 
-      // urutkan ascending
       dataBelum.sort(
-        (a, b) => a['id_peminjaman'].toString().compareTo(
-              b['id_peminjaman'].toString(),
-            ),
+        (a, b) => a['id_peminjaman'].toString()
+            .compareTo(b['id_peminjaman'].toString()),
       );
 
       dataRiwayat.sort(
-        (a, b) => a['id_pengembalian'].toString().compareTo(
-              b['id_pengembalian'].toString(),
-            ),
+        (a, b) => a['id_pengembalian'].toString()
+            .compareTo(b['id_pengembalian'].toString()),
       );
 
       setState(() {
@@ -86,9 +81,40 @@ class _PetugasPengembalianPageState extends State<PetugasPengembalianPage> {
         isLoading = false;
       });
     } catch (e) {
-      print('Gagal load data: $e');
       setState(() => isLoading = false);
+      _showTopSnackBar('Gagal load data: $e', isError: true);
     }
+  }
+
+  void _showTopSnackBar(String message, {bool isError = false}) {
+    showTopSnackBar(
+      Overlay.of(context),
+      Material(
+        color: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          margin: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: isError ? Colors.red : Colors.orange,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            children: [
+              Icon(isError ? Icons.error : Icons.check_circle,
+                  color: Colors.white),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  message,
+                  style: const TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -105,7 +131,6 @@ class _PetugasPengembalianPageState extends State<PetugasPengembalianPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 50),
-
                       Center(
                         child: Image.asset(
                           'assets/image/logo1remove.png',
@@ -113,9 +138,7 @@ class _PetugasPengembalianPageState extends State<PetugasPengembalianPage> {
                           fit: BoxFit.contain,
                         ),
                       ),
-
                       const SizedBox(height: 35),
-
                       const Text(
                         'Pengembalian Alat',
                         style: TextStyle(
@@ -123,10 +146,7 @@ class _PetugasPengembalianPageState extends State<PetugasPengembalianPage> {
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-
                       const SizedBox(height: 12),
-
-                      // pastikan currentUserId sudah tersedia
                       if (currentUserId != null)
                         for (var item in belumKembali)
                           Padding(
@@ -136,16 +156,18 @@ class _PetugasPengembalianPageState extends State<PetugasPengembalianPage> {
                               nama: item['pengguna']['nama'] ?? '-',
                               tanggalPinjam:
                                   item['tanggal_pinjam']?.toString() ?? '-',
-                              idPengguna: currentUserId!, // pakai !
-                              onUpdated: loadData,
+                              idPengguna: currentUserId!,
+                              onUpdated: () async {
+                                await loadData();
+                                _showTopSnackBar(
+                                    'Pengembalian berhasil diperbarui');
+                              },
                             ),
                           )
                       else
                         const Center(
                             child: Text('Sedang memuat user login...')),
-
                       const SizedBox(height: 25),
-
                       const Text(
                         'Riwayat Pengembalian',
                         style: TextStyle(
@@ -153,9 +175,7 @@ class _PetugasPengembalianPageState extends State<PetugasPengembalianPage> {
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-
                       const SizedBox(height: 12),
-
                       for (var r in riwayat)
                         Padding(
                           padding: const EdgeInsets.only(bottom: 12),
@@ -173,7 +193,6 @@ class _PetugasPengembalianPageState extends State<PetugasPengembalianPage> {
                 ),
         ),
       ),
-
       bottomNavigationBar: PetugasBottomNav(
         currentIndex: _currentIndex,
         onTap: (index) {
@@ -184,16 +203,14 @@ class _PetugasPengembalianPageState extends State<PetugasPengembalianPage> {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => const PetugasPeminjamanPage(),
-                ),
+                    builder: (_) => const PetugasPeminjamanPage()),
               );
               break;
             case 1:
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => const PetugasPengembalianPage(),
-                ),
+                    builder: (_) => const PetugasPengembalianPage()),
               );
               break;
             case 2:

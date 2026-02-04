@@ -60,7 +60,6 @@ class _PetugasLaporanPageState extends State<PetugasLaporanPage> {
         );
       },
     );
-
     if (picked != null) {
       controller.text = DateFormat('yyyy-MM-dd').format(picked);
     }
@@ -142,7 +141,6 @@ class _PetugasLaporanPageState extends State<PetugasLaporanPage> {
       ),
     );
 
-    // SAVE / DOWNLOAD
     await Printing.layoutPdf(
       onLayout: (PdfPageFormat format) async => pdf.save(),
     );
@@ -180,7 +178,6 @@ class _PetugasLaporanPageState extends State<PetugasLaporanPage> {
 
     return Column(
       children: laporanData.map((data) {
-        // AMBIL DATA DENGAN NULL SAFETY
         final String nama = (selectedJenisLaporan == "Laporan peminjaman")
             ? (data['pengguna']?['nama'] ?? '-')
             : (data['peminjaman']?['pengguna']?['nama'] ?? '-');

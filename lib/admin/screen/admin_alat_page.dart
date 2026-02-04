@@ -21,8 +21,8 @@ class _AdminAlatScreenState extends State<AdminAlatScreen> {
   // Variabel yang digunakan
   String selectedKategori = 'Semua';
   bool isLoading = true;
-  List<Map<String, dynamic>> alatListRaw = []; 
-  List<Map<String, dynamic>> alatList = [];  
+  List<Map<String, dynamic>> alatListRaw = [];
+  List<Map<String, dynamic>> alatList = [];
   List<String> kategoriOptions = ['Semua'];
   final TextEditingController _searchController = TextEditingController();
 
@@ -53,8 +53,9 @@ class _AdminAlatScreenState extends State<AdminAlatScreen> {
     } catch (e) {
       setState(() => isLoading = false);
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Gagal memuat data: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Gagal memuat data: $e')));
       }
     }
   }
@@ -86,6 +87,7 @@ class _AdminAlatScreenState extends State<AdminAlatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // kerangka halmaan
       backgroundColor: const Color(0xFFF5F5F5),
       body: SafeArea(
         child: Column(
@@ -148,8 +150,7 @@ class _AdminAlatScreenState extends State<AdminAlatScreen> {
                         _filterAlat();
                       },
                       itemBuilder: (context) => kategoriOptions
-                          .map((k) => PopupMenuItem(
-                              value: k, child: Text(k)))
+                          .map((k) => PopupMenuItem(value: k, child: Text(k)))
                           .toList(),
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -191,28 +192,28 @@ class _AdminAlatScreenState extends State<AdminAlatScreen> {
               child: isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : alatList.isEmpty
-                      ? const Center(child: Text('Belum ada data alat'))
-                      : RefreshIndicator(
-                          onRefresh: _loadData,
-                          child: ListView(
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
-                            children: alatList
-                                .map(
-                                  (alat) => AlatCard(
-                                    idAlat: alat['id'],
-                                    nama: alat['nama'],
-                                    kategori: alat['kategori'],
-                                    kondisi: alat['kondisi'],
-                                    total: alat['total'],
-                                    tersedia: alat['tersedia'],
-                                    dipinjam: alat['dipinjam'],
-                                    imagePath: alat['image'],
-                                    onRefresh: _loadData,
-                                  ),
-                                )
-                                .toList(),
-                          ),
-                        ),
+                  ? const Center(child: Text('Belum ada data alat'))
+                  : RefreshIndicator(
+                      onRefresh: _loadData,
+                      child: ListView(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        children: alatList
+                            .map(
+                              (alat) => AlatCard(
+                                idAlat: alat['id'],
+                                nama: alat['nama'],
+                                kategori: alat['kategori'],
+                                kondisi: alat['kondisi'],
+                                total: alat['total'],
+                                tersedia: alat['tersedia'],
+                                dipinjam: alat['dipinjam'],
+                                imagePath: alat['image'],
+                                onRefresh: _loadData,
+                              ),
+                            )
+                            .toList(),
+                      ),
+                    ),
             ),
           ],
         ),
@@ -220,8 +221,7 @@ class _AdminAlatScreenState extends State<AdminAlatScreen> {
 
       floatingActionButton: FloatingActionButton(
         backgroundColor: const Color(0xFFFF7A00),
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         onPressed: _showAddAlatDialog,
         child: const Icon(Icons.add, color: Colors.white),
       ),

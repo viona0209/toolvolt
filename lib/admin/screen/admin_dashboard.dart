@@ -58,36 +58,36 @@ class _AdminDashboardState extends State<AdminDashboard> {
   }
 
   String ringkasAktivitas(String? text) {
-  if (text == null || text.isEmpty) {
-    return 'Aktivitas tidak diketahui';
-  }
+    if (text == null || text.isEmpty) {
+      return 'Aktivitas tidak diketahui';
+    }
 
-  final t = text.toLowerCase();
+    final t = text.toLowerCase();
 
-  if (t.contains('tambah') || t.contains('insert')) {
-    return 'Menambah data';
-  }
-  if (t.contains('edit') || t.contains('update')) {
-    return 'Mengubah data';
-  }
-  if (t.contains('hapus') || t.contains('delete')) {
-    return 'Menghapus data';
-  }
-  if (t.contains('ajukan')) {
-    return 'Mengajukan peminjaman';
-  }
-  if (t.contains('setujui')) {
-    return 'Menyetujui peminjaman';
-  }
-  if (t.contains('tolak')) {
-    return 'Menolak peminjaman';
-  }
-  if (t.contains('kembali')) {
-    return 'Mengembalikan alat';
-  }
+    if (t.contains('tambah') || t.contains('insert')) {
+      return 'Menambah data';
+    }
+    if (t.contains('edit') || t.contains('update')) {
+      return 'Mengubah data';
+    }
+    if (t.contains('hapus') || t.contains('delete')) {
+      return 'Menghapus data';
+    }
+    if (t.contains('ajukan')) {
+      return 'Mengajukan peminjaman';
+    }
+    if (t.contains('setujui')) {
+      return 'Menyetujui peminjaman';
+    }
+    if (t.contains('tolak')) {
+      return 'Menolak peminjaman';
+    }
+    if (t.contains('kembali')) {
+      return 'Mengembalikan alat';
+    }
 
-  return text.length > 35 ? '${text.substring(0, 35)}...' : text;
-}
+    return text.length > 35 ? '${text.substring(0, 35)}...' : text;
+  }
 
   void _onNavTap(int index) {
     if (index == _currentIndex) return;
@@ -204,22 +204,25 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     const SizedBox(height: 18),
 
                     ...aktivitas.map((log) {
-  final user = log['pengguna']?['nama']?.toString() ?? 'Sistem';
+                      final user =
+                          log['pengguna']?['nama']?.toString() ?? 'Sistem';
 
-  final waktuString = log['waktu'];
-  final DateTime waktu = waktuString != null
-      ? DateTime.parse(waktuString).toLocal()
-      : DateTime.now();
+                      final waktuString = log['waktu'];
+                      final DateTime waktu = waktuString != null
+                          ? DateTime.parse(waktuString).toLocal()
+                          : DateTime.now();
 
-  final aktivitasText = log['aktivitas']?.toString() ?? 'Aktivitas tidak diketahui';
+                      final aktivitasText =
+                          log['aktivitas']?.toString() ??
+                          'Aktivitas tidak diketahui';
 
-  return ActivityItem(
-    title: ringkasAktivitas(aktivitasText),
-    user: user,
-    qty: '-',
-    date: '${waktu.day}/${waktu.month}/${waktu.year}',
-  );
-}).toList(),
+                      return ActivityItem(
+                        title: ringkasAktivitas(aktivitasText),
+                        user: user,
+                        qty: '-',
+                        date: '${waktu.day}/${waktu.month}/${waktu.year}',
+                      );
+                    }).toList(),
                   ],
                 ),
               ),

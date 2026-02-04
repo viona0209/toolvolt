@@ -7,6 +7,9 @@ import 'peminjam_dashboard_page.dart';
 import 'peminjam_peminjaman_page.dart';
 import 'peminjam_pengembalian_page.dart';
 
+// top snackbar
+import 'package:top_snackbar_flutter/top_snack_bar.dart';
+
 class PeminjamListAlatPage extends StatefulWidget {
   const PeminjamListAlatPage({super.key});
 
@@ -67,12 +70,7 @@ class _PeminjamListAlatPageState extends State<PeminjamListAlatPage> {
     try {
       final session = supabase.auth.currentSession;
       if (session == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Silakan login terlebih dahulu'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        _showTopSnackBar('Silakan login terlebih dahulu', isError: true);
         return;
       }
 
@@ -98,20 +96,41 @@ class _PeminjamListAlatPageState extends State<PeminjamListAlatPage> {
         'jumlah': jumlah,
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Pengajuan berhasil, menunggu persetujuan petugas'),
-          backgroundColor: Colors.green,
-        ),
-      );
+      _showTopSnackBar('Pengajuan berhasil, menunggu persetujuan petugas');
     } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Gagal mengajukan peminjaman: $error'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      _showTopSnackBar('Gagal mengajukan peminjaman: $error', isError: true);
     }
+  }
+
+  void _showTopSnackBar(String message, {bool isError = false}) {
+    showTopSnackBar(
+      Overlay.of(context),
+      Material(
+        color: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          margin: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: isError ? Colors.red : Colors.orange,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            children: [
+              Icon(isError ? Icons.error : Icons.check_circle,
+                  color: Colors.white),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  message,
+                  style: const TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override

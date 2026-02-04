@@ -28,14 +28,10 @@ class PeminjamanPeminjamCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-
-        // ✅ BORDER KUNING CARD
         border: Border.all(
           color: Colors.amber.shade600,
           width: 1.4,
         ),
-
-        // ✅ DROP SHADOW
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.08),
@@ -47,7 +43,6 @@ class PeminjamanPeminjamCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          /// ================= HEADER =================
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -78,10 +73,7 @@ class PeminjamanPeminjamCard extends StatelessWidget {
               ),
             ],
           ),
-
           const SizedBox(height: 12),
-
-          /// ================= NAMA =================
           Row(
             children: [
               const Icon(Icons.person_outline, size: 18, color: Colors.grey),
@@ -95,10 +87,7 @@ class PeminjamanPeminjamCard extends StatelessWidget {
               ),
             ],
           ),
-
           const SizedBox(height: 8),
-
-          /// ================= TANGGAL PINJAM =================
           Row(
             children: [
               const Icon(
@@ -116,10 +105,7 @@ class PeminjamanPeminjamCard extends StatelessWidget {
               ),
             ],
           ),
-
           const SizedBox(height: 8),
-
-          /// ================= TANGGAL KEMBALI =================
           Row(
             children: [
               const Icon(
@@ -137,10 +123,7 @@ class PeminjamanPeminjamCard extends StatelessWidget {
               ),
             ],
           ),
-
           const SizedBox(height: 14),
-
-          /// ================= ALAT =================
           const Text(
             'Alat yang dipinjam:',
             style: TextStyle(
@@ -148,16 +131,12 @@ class PeminjamanPeminjamCard extends StatelessWidget {
               fontWeight: FontWeight.w600,
             ),
           ),
-
           const SizedBox(height: 8),
-
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
               color: Colors.grey.shade100,
               borderRadius: BorderRadius.circular(12),
-
-              // ✅ BORDER KUNING HALUS (BIAR SERASI)
               border: Border.all(
                 color: Colors.amber.shade300,
                 width: 1,

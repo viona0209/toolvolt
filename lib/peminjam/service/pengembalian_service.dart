@@ -5,11 +5,8 @@ final supabase = Supabase.instance.client;
 class PengembalianService {
   Future<List<Map<String, dynamic>>> getPengembalian() async {
     try {
-      // Ambil user login
       final user = supabase.auth.currentUser;
       if (user == null) throw Exception("User belum login");
-
-      // Ambil id_pengguna dari tabel pengguna
       final dataPengguna = await supabase
           .from('pengguna')
           .select('id_pengguna')
@@ -17,8 +14,6 @@ class PengembalianService {
           .single();
 
       final int idPengguna = dataPengguna['id_pengguna'];
-
-      // Ambil daftar id_peminjaman user ini
       final peminjamanList = await supabase
           .from('peminjaman')
           .select('id_peminjaman')

@@ -70,13 +70,13 @@ class ActivityItem extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(
-                qty,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
-                ),
-              ),
+              // Text(
+              //   qty,
+              //   style: const TextStyle(
+              //     fontWeight: FontWeight.w600,
+              //     fontSize: 14,
+              //   ),
+              // ),
               const SizedBox(height: 2),
               Text(
                 date,

@@ -72,8 +72,31 @@ class _TambahPengembalianDialogState extends State<TambahPengembalianDialog> {
 
       showTopSnackBar(
         Overlay.of(context),
-        const CustomSnackBar.success(
-          message: "Pengembalian berhasil ditambahkan",
+        Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            margin: EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.orange,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.check_circle, color: Colors.white),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Pengembalian berhasil ditambahkan',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       );
 

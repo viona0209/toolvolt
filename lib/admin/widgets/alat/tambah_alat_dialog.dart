@@ -4,6 +4,8 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:top_snackbar_flutter/custom_snack_bar.dart';
+import 'package:top_snackbar_flutter/top_snack_bar.dart';
 import '../../overlay_message.dart' show OverlayMessage;
 import '../../services/supabase_alat_service.dart';
 
@@ -116,9 +118,34 @@ class _TambahAlatDialogState extends State<TambahAlatDialog> {
 
       if (success && mounted) {
         Navigator.pop(context);
-        OverlayMessage.show(
-          context: context,
-          message: 'Alat berhasil ditambahkan!',
+        showTopSnackBar(
+          Overlay.of(context),
+          Material(
+            color: Colors.transparent,
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              margin: EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.orange,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.check_circle, color: Colors.white),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Alat berhasil ditambahkan',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         );
         widget.onSuccess();
       }

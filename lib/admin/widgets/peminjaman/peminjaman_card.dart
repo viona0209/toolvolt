@@ -15,11 +15,10 @@ class PeminjamanCard extends StatefulWidget {
   final Color statusColor;
   final String? disetujuiOleh;
   final String? dikembalikanOleh;
-  final List<Map<String, dynamic>>?
-  items; // [{ 'nama_alat': '...', 'jumlah': xx }]
+  final List<Map<String, dynamic>>? items;
   final String? alat;
   final int? jumlah;
-  final VoidCallback? onRefresh; // Untuk refresh list setelah edit/delete
+  final VoidCallback? onRefresh;
 
   const PeminjamanCard({
     super.key,
@@ -43,8 +42,8 @@ class PeminjamanCard extends StatefulWidget {
 
 class _PeminjamanCardState extends State<PeminjamanCard> {
   bool _isExpanded = false;
-
   static const primaryOrange = Color(0xFFFF8E01);
+  static const yellowBorder = Color(0xFFFFC107);
 
   @override
   Widget build(BuildContext context) {
@@ -68,169 +67,195 @@ class _PeminjamanCardState extends State<PeminjamanCard> {
       }
     }
 
-    final List<Map<String, dynamic>> alatList = widget.items ?? [];
+    final List<Map<String, dynamic>> alatList =
+        widget.items != null && widget.items!.isNotEmpty
+        ? List<Map<String, dynamic>>.from(widget.items!)
+        : [];
+
     if (alatList.isEmpty && widget.alat != null && widget.jumlah != null) {
       alatList.add({'nama_alat': widget.alat, 'jumlah': widget.jumlah});
     }
 
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade300),
-        boxShadow: [
-          BoxShadow(
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-            color: Colors.black.withOpacity(0.08),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "ID: ${widget.id}",
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Container(
+          margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: yellowBorder, width: 2),
+            boxShadow: [
+              BoxShadow(
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+                color: Colors.black.withOpacity(0.08),
               ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header
               Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: widget.statusColor,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
+                  Expanded(
                     child: Text(
-                      widget.status,
+                      "ID: ${widget.id}",
                       style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
                         fontWeight: FontWeight.bold,
+                        fontSize: 16,
                       ),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  PopupMenuButton<String>(
-                    icon: const Icon(Icons.more_vert, size: 20),
-                    onSelected: (value) {
-                      if (value == 'edit') {
-                        _showEditDialog(context);
-                      } else if (value == 'delete') {
-                        _confirmDelete(context);
-                      } else if (value == 'detail') {
-                        setState(() => _isExpanded = !_isExpanded);
-                      }
-                    },
-                    itemBuilder: (context) => [
-                      PopupMenuItem(
-                        value: 'edit',
-                        child: Row(
-                          children: [
-                            Icon(Icons.edit, color: primaryOrange),
-                            const SizedBox(width: 12),
-                            const Text('Edit'),
-                          ],
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: widget.statusColor,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          widget.status,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
-                      PopupMenuItem(
-                        value: 'delete',
-                        child: Row(
-                          children: [
-                            Icon(Icons.delete, color: Colors.red),
-                            const SizedBox(width: 12),
-                            const Text('Hapus'),
-                          ],
-                        ),
-                      ),
-                      PopupMenuItem(
-                        value: 'detail',
-                        child: Row(
-                          children: [
-                            Icon(Icons.visibility, color: Colors.blueGrey),
-                            const SizedBox(width: 12),
-                            const Text('Detail'),
-                          ],
-                        ),
+                      const SizedBox(width: 8),
+                      PopupMenuButton<String>(
+                        icon: const Icon(Icons.more_vert, size: 20),
+                        onSelected: (value) {
+                          if (value == 'edit') _showEditDialog(context);
+                          if (value == 'delete') _confirmDelete(context);
+                          if (value == 'detail')
+                            setState(() => _isExpanded = !_isExpanded);
+                        },
+                        itemBuilder: (context) => [
+                          const PopupMenuItem(
+                            value: 'edit',
+                            child: Row(
+                              children: [
+                                Icon(Icons.edit, color: primaryOrange),
+                                SizedBox(width: 12),
+                                Text('Edit'),
+                              ],
+                            ),
+                          ),
+                          const PopupMenuItem(
+                            value: 'delete',
+                            child: Row(
+                              children: [
+                                Icon(Icons.delete, color: Colors.red),
+                                SizedBox(width: 12),
+                                Text('Hapus'),
+                              ],
+                            ),
+                          ),
+                          const PopupMenuItem(
+                            value: 'detail',
+                            child: Row(
+                              children: [
+                                Icon(Icons.visibility, color: Colors.blueGrey),
+                                SizedBox(width: 12),
+                                Text('Detail'),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
                 ],
               ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              const Icon(Icons.person_outline, size: 18, color: Colors.grey),
-              const SizedBox(width: 8),
-              Text(widget.nama, style: const TextStyle(color: Colors.black87)),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              const Icon(
-                Icons.calendar_today_outlined,
-                size: 18,
-                color: Colors.grey,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                "Kembali: ${widget.tglKembali}",
-                style: const TextStyle(color: Colors.black87),
-              ),
-            ],
-          ),
-          AnimatedCrossFade(
-            firstChild: const SizedBox.shrink(),
-            secondChild: Padding(
-              padding: const EdgeInsets.only(top: 12),
-              child: Row(
+              const SizedBox(height: 12),
+              Row(
                 children: [
-                  const Icon(Icons.verified_user, size: 18, color: Colors.grey),
+                  const Icon(
+                    Icons.person_outline,
+                    size: 18,
+                    color: Colors.grey,
+                  ),
                   const SizedBox(width: 8),
-                  Text("$approvalText: $approvalName"),
+                  Expanded(
+                    child: Text(
+                      widget.nama,
+                      style: const TextStyle(color: Colors.black87),
+                    ),
+                  ),
                 ],
               ),
-            ),
-            crossFadeState: _isExpanded
-                ? CrossFadeState.showSecond
-                : CrossFadeState.showFirst,
-            duration: const Duration(milliseconds: 300),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  const Icon(
+                    Icons.calendar_today_outlined,
+                    size: 18,
+                    color: Colors.grey,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      "Kembali: ${widget.tglKembali}",
+                      style: const TextStyle(color: Colors.black87),
+                    ),
+                  ),
+                ],
+              ),
+              AnimatedCrossFade(
+                firstChild: const SizedBox.shrink(),
+                secondChild: Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.verified_user,
+                        size: 18,
+                        color: Colors.grey,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(child: Text("$approvalText: $approvalName")),
+                    ],
+                  ),
+                ),
+                crossFadeState: _isExpanded
+                    ? CrossFadeState.showSecond
+                    : CrossFadeState.showFirst,
+                duration: const Duration(milliseconds: 300),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                "Alat yang dipinjam:",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+              ),
+              const SizedBox(height: 8),
+              if (alatList.isEmpty)
+                const Text(
+                  "Tidak ada alat",
+                  style: TextStyle(color: Colors.grey),
+                )
+              else
+                Column(
+                  children: alatList.map((item) {
+                    final namaAlat = item['nama_alat'] as String? ?? 'Unknown';
+                    final jumlah = item['jumlah'] as int? ?? 0;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: _buildItemAlat(namaAlat, jumlah),
+                    );
+                  }).toList(),
+                ),
+            ],
           ),
-          const SizedBox(height: 16),
-          const Text(
-            "Alat yang dipinjam:",
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-          ),
-          const SizedBox(height: 8),
-          if (alatList.isEmpty)
-            const Text("Tidak ada alat", style: TextStyle(color: Colors.grey))
-          else
-            Column(
-              children: alatList.map((item) {
-                final namaAlat = item['nama_alat'] as String? ?? 'Unknown';
-                final jumlah = item['jumlah'] as int? ?? 0;
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: _buildItemAlat(namaAlat, jumlah),
-                );
-              }).toList(),
-            ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -240,10 +265,9 @@ class _PeminjamanCardState extends State<PeminjamanCard> {
       decoration: BoxDecoration(
         color: Colors.grey.shade50,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: Colors.amber, width: 2),
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Expanded(
             child: Text(
@@ -257,7 +281,7 @@ class _PeminjamanCardState extends State<PeminjamanCard> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: Colors.grey.shade300),
+              border: Border.all(color: Colors.amber, width: 1),
             ),
             child: Text(
               "$jumlah unit",
@@ -276,25 +300,19 @@ class _PeminjamanCardState extends State<PeminjamanCard> {
     List<Map<String, dynamic>> daftarPengguna = [];
     List<Map<String, dynamic>> daftarAlat = [];
     int? selectedPenggunaId;
-    DateTime? tglPinjam;
-    DateTime? tglKembali;
+
+    DateTime tglPinjam = DateTime.now();
+    DateTime tglKembali = DateTime.now().add(const Duration(days: 7));
+
     List<Map<String, dynamic>> editableItems = [];
 
     try {
-      tglPinjam = DateFormat('dd/MM/yyyy').parse(widget.tglPinjam);
-      tglKembali = DateFormat('dd/MM/yyyy').parse(widget.tglKembali);
-    } catch (_) {
-      tglPinjam = DateTime.now();
-      tglKembali = DateTime.now().add(const Duration(days: 7));
-    }
+      tglPinjam =
+          DateFormat('dd/MM/yyyy').tryParse(widget.tglPinjam) ?? DateTime.now();
+      tglKembali =
+          DateFormat('dd/MM/yyyy').tryParse(widget.tglKembali) ??
+          tglPinjam.add(const Duration(days: 7));
 
-    if (widget.items != null && widget.items!.isNotEmpty) {
-      editableItems = List.from(widget.items!);
-    } else if (widget.alat != null && widget.jumlah != null) {
-      editableItems.add({'nama_alat': widget.alat, 'jumlah': widget.jumlah});
-    }
-
-    try {
       final penggunaRes = await supabase
           .from('pengguna')
           .select('id_pengguna, nama')
@@ -309,11 +327,45 @@ class _PeminjamanCardState extends State<PeminjamanCard> {
 
       final currentPengguna = daftarPengguna.firstWhere(
         (p) => p['nama'] == widget.nama,
-        orElse: () => {},
+        orElse: () => {'id_pengguna': null},
       );
-
       selectedPenggunaId = currentPengguna['id_pengguna'] as int?;
+
+      final sourceList = widget.items ?? [];
+      for (final item in sourceList) {
+        final alatMatch = daftarAlat.firstWhere(
+          (a) => a['nama_alat'] == item['nama_alat'],
+          orElse: () => {'id_alat': null, 'jumlah_tersedia': 0},
+        );
+        if (alatMatch['id_alat'] != null) {
+          editableItems.add({
+            'id_alat': alatMatch['id_alat'],
+            'nama_alat': alatMatch['nama_alat'],
+            'jumlah': item['jumlah'] ?? 1,
+            'stok_tersedia': alatMatch['jumlah_tersedia'],
+          });
+        }
+      }
+
+      // fallback jika hanya ada alat & jumlah tunggal
+      if (editableItems.isEmpty &&
+          widget.alat != null &&
+          widget.jumlah != null) {
+        final alatMatch = daftarAlat.firstWhere(
+          (a) => a['nama_alat'] == widget.alat,
+          orElse: () => {'id_alat': null, 'jumlah_tersedia': 0},
+        );
+        if (alatMatch['id_alat'] != null) {
+          editableItems.add({
+            'id_alat': alatMatch['id_alat'],
+            'nama_alat': alatMatch['nama_alat'],
+            'jumlah': widget.jumlah,
+            'stok_tersedia': alatMatch['jumlah_tersedia'],
+          });
+        }
+      }
     } catch (e) {
+      if (!mounted) return;
       showTopSnackBar(
         Overlay.of(context),
         CustomSnackBar.error(message: "Gagal memuat data: $e"),
@@ -330,7 +382,9 @@ class _PeminjamanCardState extends State<PeminjamanCard> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
-          child: Padding(
+          child: Container(
+            width: double.maxFinite,
+            constraints: const BoxConstraints(maxWidth: 600),
             padding: const EdgeInsets.all(20),
             child: StatefulBuilder(
               builder: (context, setDialogState) {
@@ -339,16 +393,18 @@ class _PeminjamanCardState extends State<PeminjamanCard> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Center(
+                      Center(
                         child: Text(
                           'Edit Peminjaman',
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
+                            color: primaryOrange,
                           ),
                         ),
                       ),
                       const SizedBox(height: 24),
+
                       const Text(
                         'Nama Peminjam',
                         style: TextStyle(fontWeight: FontWeight.w600),
@@ -371,29 +427,26 @@ class _PeminjamanCardState extends State<PeminjamanCard> {
                             setDialogState(() => selectedPenggunaId = val),
                       ),
 
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 24),
                       const Text(
                         'Alat yang Dipinjam',
                         style: TextStyle(fontWeight: FontWeight.w600),
                       ),
+
                       ...editableItems.asMap().entries.map((entry) {
                         final index = entry.key;
                         final item = entry.value;
-
-                        final currentAlatId =
-                            daftarAlat.firstWhere(
-                                  (a) => a['nama_alat'] == item['nama_alat'],
-                                  orElse: () => {'id_alat': null},
-                                )['id_alat']
-                                as int?;
+                        final stok = item['stok_tersedia'] as int? ?? 0;
+                        final qty = item['jumlah'] as int? ?? 1;
 
                         return Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.only(bottom: 16),
                           child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Expanded(
                                 child: DropdownButtonFormField<int>(
-                                  value: currentAlatId,
+                                  value: item['id_alat'] as int?,
                                   isExpanded: true,
                                   decoration: InputDecoration(
                                     border: OutlineInputBorder(
@@ -402,8 +455,10 @@ class _PeminjamanCardState extends State<PeminjamanCard> {
                                   ),
                                   items: daftarAlat.map((a) {
                                     return DropdownMenuItem<int>(
-                                      value: a['id_alat'],
-                                      child: Text(a['nama_alat']),
+                                      value: a['id_alat'] as int,
+                                      child: Text(
+                                        "${a['nama_alat']} (tersedia: ${a['jumlah_tersedia']})",
+                                      ),
                                     );
                                   }).toList(),
                                   onChanged: (val) {
@@ -413,37 +468,43 @@ class _PeminjamanCardState extends State<PeminjamanCard> {
                                     );
                                     setDialogState(() {
                                       editableItems[index] = {
+                                        'id_alat': val,
                                         'nama_alat': newAlat['nama_alat'],
-                                        'jumlah': item['jumlah'] ?? 1,
+                                        'jumlah': qty,
+                                        'stok_tersedia':
+                                            newAlat['jumlah_tersedia'],
                                       };
                                     });
                                   },
                                 ),
                               ),
-                              const SizedBox(width: 8),
+                              const SizedBox(width: 12),
                               SizedBox(
-                                width: 80,
+                                width: 100,
                                 child: TextFormField(
-                                  initialValue: (item['jumlah'] ?? 1)
-                                      .toString(),
+                                  initialValue: qty.toString(),
                                   keyboardType: TextInputType.number,
                                   decoration: InputDecoration(
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(8),
                                     ),
+                                    labelText: 'Jumlah',
+                                    errorText: qty > stok
+                                        ? 'Melebihi stok'
+                                        : null,
                                   ),
                                   onChanged: (val) {
-                                    final qty = int.tryParse(val) ?? 1;
-                                    setDialogState(
-                                      () =>
-                                          editableItems[index]['jumlah'] = qty,
-                                    );
+                                    final newQty = int.tryParse(val) ?? 1;
+                                    setDialogState(() {
+                                      editableItems[index]['jumlah'] = newQty
+                                          .clamp(1, 9999);
+                                    });
                                   },
                                 ),
                               ),
                               IconButton(
                                 icon: const Icon(
-                                  Icons.delete,
+                                  Icons.delete_forever,
                                   color: Colors.red,
                                 ),
                                 onPressed: () => setDialogState(
@@ -453,23 +514,39 @@ class _PeminjamanCardState extends State<PeminjamanCard> {
                             ],
                           ),
                         );
-                      }),
+                      }).toList(),
+
+                      if (editableItems.isEmpty)
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 16),
+                          child: Center(
+                            child: Text(
+                              "Belum ada alat yang dipilih",
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          ),
+                        ),
+
                       TextButton.icon(
-                        onPressed: () {
-                          if (daftarAlat.isNotEmpty) {
-                            final defaultAlat = daftarAlat.first;
-                            setDialogState(() {
-                              editableItems.add({
-                                'nama_alat': defaultAlat['nama_alat'],
-                                'jumlah': 1,
-                              });
-                            });
-                          }
-                        },
-                        icon: Icon(Icons.add, color: primaryOrange),
+                        onPressed: daftarAlat.isEmpty
+                            ? null
+                            : () {
+                                final defaultAlat = daftarAlat.first;
+                                setDialogState(() {
+                                  editableItems.add({
+                                    'id_alat': defaultAlat['id_alat'],
+                                    'nama_alat': defaultAlat['nama_alat'],
+                                    'jumlah': 1,
+                                    'stok_tersedia':
+                                        defaultAlat['jumlah_tersedia'],
+                                  });
+                                });
+                              },
+                        icon: Icon(Icons.add_circle, color: primaryOrange),
                         label: const Text('Tambah Alat'),
                       ),
-                      const SizedBox(height: 16),
+
+                      const SizedBox(height: 24),
                       Row(
                         children: [
                           Expanded(
@@ -485,7 +562,7 @@ class _PeminjamanCardState extends State<PeminjamanCard> {
                                   controller: TextEditingController(
                                     text: DateFormat(
                                       'dd/MM/yyyy',
-                                    ).format(tglPinjam!),
+                                    ).format(tglPinjam),
                                   ),
                                   decoration: InputDecoration(
                                     border: OutlineInputBorder(
@@ -497,19 +574,20 @@ class _PeminjamanCardState extends State<PeminjamanCard> {
                                   ),
                                   onTap: () async {
                                     final picked = await showDatePicker(
-                                      context: context,
-                                      initialDate: tglPinjam!,
-                                      firstDate: DateTime(2000),
-                                      lastDate: DateTime(2100),
+                                      context: dialogContext,
+                                      initialDate: tglPinjam,
+                                      firstDate: DateTime(2020),
+                                      lastDate: DateTime(2035),
                                     );
-                                    if (picked != null)
+                                    if (picked != null && mounted) {
                                       setDialogState(() => tglPinjam = picked);
+                                    }
                                   },
                                 ),
                               ],
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: 16),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -523,7 +601,7 @@ class _PeminjamanCardState extends State<PeminjamanCard> {
                                   controller: TextEditingController(
                                     text: DateFormat(
                                       'dd/MM/yyyy',
-                                    ).format(tglKembali!),
+                                    ).format(tglKembali),
                                   ),
                                   decoration: InputDecoration(
                                     border: OutlineInputBorder(
@@ -535,13 +613,14 @@ class _PeminjamanCardState extends State<PeminjamanCard> {
                                   ),
                                   onTap: () async {
                                     final picked = await showDatePicker(
-                                      context: context,
-                                      initialDate: tglKembali!,
-                                      firstDate: tglPinjam!,
-                                      lastDate: DateTime(2100),
+                                      context: dialogContext,
+                                      initialDate: tglKembali,
+                                      firstDate: tglPinjam,
+                                      lastDate: DateTime(2035),
                                     );
-                                    if (picked != null)
+                                    if (picked != null && mounted) {
                                       setDialogState(() => tglKembali = picked);
+                                    }
                                   },
                                 ),
                               ],
@@ -549,82 +628,154 @@ class _PeminjamanCardState extends State<PeminjamanCard> {
                           ),
                         ],
                       ),
+
                       const SizedBox(height: 32),
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          OutlinedButton(
-                            onPressed: () => Navigator.pop(dialogContext),
-                            child: const Text('Batal'),
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: () => Navigator.pop(dialogContext),
+                              child: const Text('Batal'),
+                            ),
                           ),
                           const SizedBox(width: 16),
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: primaryOrange,
-                            ),
-                            child: const Text('Simpan'),
-                            onPressed: () async {
-                              if (selectedPenggunaId == null ||
-                                  editableItems.isEmpty) {
-                                showTopSnackBar(
-                                  Overlay.of(context),
-                                  const CustomSnackBar.error(
-                                    message: "Lengkapi semua field",
-                                  ),
-                                );
-                                return;
-                              }
-
-                              try {
-                                await supabase
-                                    .from('peminjaman')
-                                    .update({
-                                      'id_pengguna': selectedPenggunaId,
-                                      'tanggal_pinjam': DateFormat(
-                                        'yyyy-MM-dd',
-                                      ).format(tglPinjam!),
-                                      'tanggal_kembali': DateFormat(
-                                        'yyyy-MM-dd',
-                                      ).format(tglKembali!),
-                                    })
-                                    .eq('id_peminjaman', idPeminjaman);
-
-                                await supabase
-                                    .from('detail_peminjaman')
-                                    .delete()
-                                    .eq('id_peminjaman', idPeminjaman);
-
-                                for (var item in editableItems) {
-                                  final alat = daftarAlat.firstWhere(
-                                    (a) => a['nama_alat'] == item['nama_alat'],
+                          Expanded(
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: primaryOrange,
+                                foregroundColor: Colors.white,
+                              ),
+                              onPressed: () async {
+                                // Validasi
+                                if (selectedPenggunaId == null) {
+                                  showTopSnackBar(
+                                    Overlay.of(context),
+                                    const CustomSnackBar.error(
+                                      message:
+                                          "Pilih nama peminjam terlebih dahulu",
+                                    ),
                                   );
-                                  await supabase
-                                      .from('detail_peminjaman')
-                                      .insert({
-                                        'id_peminjaman': idPeminjaman,
-                                        'id_alat': alat['id_alat'],
-                                        'jumlah': item['jumlah'],
-                                      });
+                                  return;
                                 }
 
-                                Navigator.pop(dialogContext);
-                                widget.onRefresh?.call();
+                                if (editableItems.isEmpty) {
+                                  showTopSnackBar(
+                                    Overlay.of(context),
+                                    const CustomSnackBar.error(
+                                      message: "Minimal harus memilih 1 alat",
+                                    ),
+                                  );
+                                  return;
+                                }
 
-                                showTopSnackBar(
-                                  Overlay.of(context),
-                                  const CustomSnackBar.success(
-                                    message: "Edit berhasil disimpan",
-                                  ),
-                                );
-                              } catch (e) {
-                                showTopSnackBar(
-                                  Overlay.of(context),
-                                  CustomSnackBar.error(
-                                    message: "Gagal edit: $e",
-                                  ),
-                                );
-                              }
-                            },
+                                if (tglKembali.isBefore(tglPinjam)) {
+                                  showTopSnackBar(
+                                    Overlay.of(context),
+                                    const CustomSnackBar.error(
+                                      message:
+                                          "Tanggal kembali tidak boleh sebelum tanggal pinjam",
+                                    ),
+                                  );
+                                  return;
+                                }
+
+                                // Validasi stok
+                                for (var item in editableItems) {
+                                  final qty = item['jumlah'] as int;
+                                  final stok =
+                                      item['stok_tersedia'] as int? ?? 0;
+                                  if (qty > stok) {
+                                    showTopSnackBar(
+                                      Overlay.of(context),
+                                      CustomSnackBar.error(
+                                        message:
+                                            "Jumlah ${item['nama_alat']} (${qty}) melebihi stok tersedia (${stok})",
+                                      ),
+                                    );
+                                    return;
+                                  }
+                                }
+
+                                try {
+                                  await supabase
+                                      .from('peminjaman')
+                                      .update({
+                                        'id_pengguna': selectedPenggunaId,
+                                        'tanggal_pinjam': DateFormat(
+                                          'yyyy-MM-dd',
+                                        ).format(tglPinjam),
+                                        'tanggal_kembali': DateFormat(
+                                          'yyyy-MM-dd',
+                                        ).format(tglKembali),
+                                      })
+                                      .eq('id_peminjaman', idPeminjaman);
+                                  await supabase
+                                      .from('detail_peminjaman')
+                                      .delete()
+                                      .eq('id_peminjaman', idPeminjaman);
+                                  for (var item in editableItems) {
+                                    await supabase
+                                        .from('detail_peminjaman')
+                                        .insert({
+                                          'id_peminjaman': idPeminjaman,
+                                          'id_alat': item['id_alat'],
+                                          'jumlah': item['jumlah'],
+                                        });
+                                  }
+
+                                  if (!mounted) return;
+                                  Navigator.pop(dialogContext);
+                                  widget.onRefresh?.call();
+
+                                  showTopSnackBar(
+                                    Overlay.of(context),
+                                    Material(
+                                      color: Colors.transparent,
+                                      child: Container(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                          vertical: 12,
+                                        ),
+                                        margin: EdgeInsets.all(8),
+                                        decoration: BoxDecoration(
+                                          color: Colors.orange,
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              Icons.check_circle,
+                                              color: Colors.white,
+                                            ),
+                                            SizedBox(width: 8),
+                                            Expanded(
+                                              child: Text(
+                                                'Perubahan berhasil disimpan',
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                } catch (e) {
+                                  if (!mounted) return;
+                                  showTopSnackBar(
+                                    Overlay.of(context),
+                                    CustomSnackBar.error(
+                                      message: "Gagal menyimpan perubahan: $e",
+                                    ),
+                                  );
+                                }
+                              },
+                              child: const Text('Simpan'),
+                            ),
                           ),
                         ],
                       ),
@@ -643,49 +794,102 @@ class _PeminjamanCardState extends State<PeminjamanCard> {
     final idPeminjaman = int.tryParse(widget.id) ?? 0;
     if (idPeminjaman == 0) return;
 
-    final confirm = await showDialog<bool>(
+    final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Hapus Peminjaman?'),
-        content: const Text(
-          'Data peminjaman ini akan dihapus permanen (termasuk detail alat).',
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: Colors.orange, width: 2),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Batal'),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minWidth: 280, maxWidth: 320),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Konfirmasi Hapus',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'Apakah Anda yakin ingin menghapus data peminjaman ini?\nTindakan ini tidak dapat dibatalkan.',
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: const Text('Batal'),
+                    ),
+                    const SizedBox(width: 16),
+                    TextButton(
+                      style: TextButton.styleFrom(foregroundColor: Colors.red),
+                      onPressed: () => Navigator.pop(context, true),
+                      child: const Text('Hapus'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Hapus', style: TextStyle(color: Colors.red)),
-          ),
-        ],
+        ),
       ),
     );
 
-    if (confirm == true && mounted) {
-      try {
-        await supabase
-            .from('detail_peminjaman')
-            .delete()
-            .eq('id_peminjaman', idPeminjaman);
+    if (confirmed != true || !mounted) return;
 
-        await supabase
-            .from('peminjaman')
-            .delete()
-            .eq('id_peminjaman', idPeminjaman);
+    try {
+      await supabase
+          .from('detail_peminjaman')
+          .delete()
+          .eq('id_peminjaman', idPeminjaman);
 
-        widget.onRefresh?.call();
-        showTopSnackBar(
-          Overlay.of(context),
-          const CustomSnackBar.success(message: "Peminjaman berhasil dihapus"),
-        );
-      } catch (e) {
-        showTopSnackBar(
-          Overlay.of(context),
-          CustomSnackBar.error(message: "Gagal hapus: $e"),
-        );
-      }
+      await supabase
+          .from('peminjaman')
+          .delete()
+          .eq('id_peminjaman', idPeminjaman);
+
+      widget.onRefresh?.call();
+
+      showTopSnackBar(
+        Overlay.of(context),
+        Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            margin: EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.orange,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.check_circle, color: Colors.white),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Peminjaman berhasil dihapus',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    } catch (e) {
+      showTopSnackBar(
+        Overlay.of(context),
+        CustomSnackBar.error(message: "Gagal menghapus: $e"),
+      );
     }
   }
 }

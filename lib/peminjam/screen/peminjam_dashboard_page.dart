@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:toolvolt/peminjam/service/peminjam_service.dart';
-import '../../login_screen.dart';
 import '../widgets/peminjam_bottom_nav.dart';
 import 'peminjam_list_alat_page.dart';
 import 'peminjam_peminjaman_page.dart';
@@ -36,10 +35,7 @@ class _PeminjamDashboardPageState extends State<PeminjamDashboardPage> {
   Future<void> loadPeminjamIdAndData() async {
     final user = Supabase.instance.client.auth.currentUser;
 
-    if (user == null) {
-      debugPrint("⚠ Tidak ada user yang login!");
-      return;
-    }
+    if (user == null) return;
 
     final authId = user.id;
 
@@ -49,15 +45,9 @@ class _PeminjamDashboardPageState extends State<PeminjamDashboardPage> {
         .eq('auth_id', authId)
         .maybeSingle();
 
-    if (response == null || response['id_pengguna'] == null) {
-      debugPrint(
-        "⚠ Gagal mengambil id peminjam: pastikan user ada di tabel 'pengguna'",
-      );
-      return;
-    }
+    if (response == null || response['id_pengguna'] == null) return;
 
     idPeminjam = response['id_pengguna'] as int;
-
     loadData();
   }
 
@@ -79,107 +69,115 @@ class _PeminjamDashboardPageState extends State<PeminjamDashboardPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 24, 20, 40),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Hallo Peminjam',
-                style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 2),
-              const Text(
-                'Selamat Datang !',
-                style: TextStyle(fontSize: 15, color: Colors.black54),
-              ),
-              const SizedBox(height: 28),
-              IntrinsicHeight(
-                child: Row(
-                  children: [
-                    Expanded(
-                      flex: 5,
-                      child: _buildCard(
-                        icon: Icons.inventory_2_rounded,
-                        title: "Alat Tersedia",
-                        value: totalAlat.toString(),
-                        subtitle: "Semua Peralatan",
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      flex: 4,
-                      child: Column(
-                        children: [
-                          Expanded(
-                            child: _buildCardSmall(
-                              icon: Icons.assignment_turned_in_outlined,
-                              title: "Pinjam",
-                              subtitleTop: "Aktif",
-                              value: peminjamanAktif.toString(),
-                              subtitleBottom: "Sedang dipinjam",
-                            ),
+    return LayoutBuilder(
+      builder: (context, constraint) {
+        final width = constraint.maxWidth;
+
+        return Scaffold(
+          backgroundColor: Colors.white,
+          body: SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(20, 24, 20, 40),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Hallo Peminjam',
+                      style: TextStyle(
+                          fontSize: width * 0.065, fontWeight: FontWeight.bold)),
+                  SizedBox(height: width * 0.01),
+                  Text('Selamat Datang !',
+                      style: TextStyle(fontSize: width * 0.04, color: Colors.black54)),
+                  SizedBox(height: width * 0.035),
+                  IntrinsicHeight(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Expanded(
+                          flex: 5,
+                          child: _buildCard(
+                            icon: Icons.inventory_2_rounded,
+                            title: "Alat Tersedia",
+                            value: totalAlat.toString(),
+                            subtitle: "Semua Peralatan",
+                            width: width,
                           ),
-                          const SizedBox(height: 16),
-                          Expanded(
-                            child: _buildCardSmall(
-                              icon: Icons.history_rounded,
-                              title: "Riwayat",
-                              subtitleTop: "",
-                              value: totalRiwayat.toString(),
-                              subtitleBottom: "Total Riwayat",
-                            ),
+                        ),
+                        SizedBox(width: width * 0.02),
+                        Expanded(
+                          flex: 4,
+                          child: Column(
+                            children: [
+                              Expanded(
+                                child: _buildCardSmall(
+                                  icon: Icons.assignment_turned_in_outlined,
+                                  title: "Pinjam",
+                                  subtitleTop: "Aktif",
+                                  value: peminjamanAktif.toString(),
+                                  subtitleBottom: "Sedang dipinjam",
+                                  width: width,
+                                ),
+                              ),
+                              SizedBox(height: width * 0.02),
+                              Expanded(
+                                child: _buildCardSmall(
+                                  icon: Icons.history_rounded,
+                                  title: "Riwayat",
+                                  subtitleTop: "",
+                                  value: totalRiwayat.toString(),
+                                  subtitleBottom: "Total Riwayat",
+                                  width: width,
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+
+                  SizedBox(height: width * 0.05),
+                  Text(
+                    'Riwayat',
+                    style: TextStyle(fontSize: width * 0.05, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: width * 0.03),
+                  for (var item in riwayat) _buildRiwayatItem(item, width),
+                ],
               ),
-              const SizedBox(height: 32),
-              const Text(
-                'Riwayat',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
-              for (var item in riwayat) _buildRiwayatItem(item),
-            ],
+            ),
           ),
-        ),
-      ),
-      bottomNavigationBar: PeminjamBottomNav(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          if (index == _currentIndex) return;
-          setState(() => _currentIndex = index);
+          bottomNavigationBar: PeminjamBottomNav(
+            currentIndex: _currentIndex,
+            onTap: (index) {
+              if (index == _currentIndex) return;
+              setState(() => _currentIndex = index);
 
-          Widget page;
-          switch (index) {
-            case 0:
-              page = const PeminjamListAlatPage();
-              break;
-            case 1:
-              page = const PeminjamPeminjamanPage();
-              break;
-            case 2:
-              page = const PeminjamDashboardPage();
-              break;
-            case 3:
-              page = const PeminjamPengembalianPage();
-              break;
-            default:
-              return;
-          }
+              Widget page;
+              switch (index) {
+                case 0:
+                  page = const PeminjamListAlatPage();
+                  break;
+                case 1:
+                  page = const PeminjamPeminjamanPage();
+                  break;
+                case 2:
+                  page = const PeminjamDashboardPage();
+                  break;
+                case 3:
+                  page = const PeminjamPengembalianPage();
+                  break;
+                default:
+                  return;
+              }
 
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => page),
-          );
-        },
-      ),
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (_) => page),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 
@@ -188,20 +186,28 @@ class _PeminjamDashboardPageState extends State<PeminjamDashboardPage> {
     required String title,
     required String value,
     required String subtitle,
+    required double width,
   }) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(width * 0.05),
       decoration: _cardDecoration(),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, size: 80, color: primaryOrange),
-          const SizedBox(height: 24),
-          Text(title, style: _titleStyle()),
-          const SizedBox(height: 12),
-          Text(value, style: _valueStyle()),
-          const SizedBox(height: 8),
-          Text(subtitle, style: _subtitleStyle()),
+          Icon(icon, size: width * 0.18, color: primaryOrange),
+          SizedBox(height: width * 0.04),
+          Text(title,
+              style: TextStyle(fontSize: width * 0.045, fontWeight: FontWeight.w600),
+              textAlign: TextAlign.center),
+          SizedBox(height: width * 0.03),
+          Text(value,
+              style: TextStyle(
+                  fontSize: width * 0.15,
+                  fontWeight: FontWeight.bold,
+                  color: primaryOrange),
+              textAlign: TextAlign.center),
+          SizedBox(height: width * 0.02),
+          Text(subtitle, style: _subtitleStyle(), textAlign: TextAlign.center),
         ],
       ),
     );
@@ -213,33 +219,46 @@ class _PeminjamDashboardPageState extends State<PeminjamDashboardPage> {
     required String subtitleTop,
     required String value,
     required String subtitleBottom,
+    required double width,
   }) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(width * 0.035),
       decoration: _cardDecoration(),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
             children: [
-              _iconBox(icon),
-              const SizedBox(width: 14),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title, style: _titleSmall()),
-                  if (subtitleTop.isNotEmpty)
-                    Text(subtitleTop, style: _titleSmall()),
-                ],
+              _iconBox(icon, size: width * 0.08),
+              SizedBox(width: width * 0.025),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: _titleSmall(width), overflow: TextOverflow.ellipsis),
+                    if (subtitleTop.isNotEmpty)
+                      Text(subtitleTop,
+                          style: _titleSmall(width), overflow: TextOverflow.ellipsis),
+                  ],
+                ),
               ),
             ],
           ),
           const Spacer(),
           Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Text(value, style: _valueSmall()),
-              const SizedBox(height: 6),
-              Text(subtitleBottom, style: _subtitleStyle()),
+              Text(
+                value,
+                style: TextStyle(
+                  fontSize: width * 0.11,
+                  fontWeight: FontWeight.bold,
+                  color: primaryOrange,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: width * 0.01),
+              Text(subtitleBottom, style: _subtitleStyle(), textAlign: TextAlign.center),
             ],
           ),
         ],
@@ -247,7 +266,7 @@ class _PeminjamDashboardPageState extends State<PeminjamDashboardPage> {
     );
   }
 
-  Widget _buildRiwayatItem(Map<String, dynamic> item) {
+  Widget _buildRiwayatItem(Map<String, dynamic> item, double width) {
     final pinjam = item['tanggal_pinjam'] ?? '-';
     final kembali = item['tanggal_kembali'] ?? '-';
     final jumlah = item['detail_peminjaman']?.length ?? 0;
@@ -291,24 +310,21 @@ class _PeminjamDashboardPageState extends State<PeminjamDashboardPage> {
     }
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
+      margin: EdgeInsets.only(bottom: width * 0.03),
+      padding: EdgeInsets.all(width * 0.035),
       decoration: _cardDecoration(),
       child: Row(
         children: [
-          _iconBox(
-            statusIcon,
-            color: statusColor,
-            bg: statusColor.withOpacity(0.12),
-          ),
-          const SizedBox(width: 16),
+          _iconBox(statusIcon,
+              color: statusColor, bg: statusColor.withOpacity(0.12), size: width * 0.08),
+          SizedBox(width: width * 0.035),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("Pinjam: $pinjam"),
-                const SizedBox(height: 6),
-                Text("Kembali: $kembali"),
+                Text("Pinjam: $pinjam", style: TextStyle(fontSize: width * 0.035)),
+                SizedBox(height: width * 0.015),
+                Text("Kembali: $kembali", style: TextStyle(fontSize: width * 0.035)),
               ],
             ),
           ),
@@ -316,21 +332,19 @@ class _PeminjamDashboardPageState extends State<PeminjamDashboardPage> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 6,
-                ),
+                padding: EdgeInsets.symmetric(
+                    horizontal: width * 0.035, vertical: width * 0.015),
                 decoration: BoxDecoration(
                   color: statusColor,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
                   statusText,
-                  style: const TextStyle(color: Colors.white, fontSize: 12),
+                  style: TextStyle(color: Colors.white, fontSize: width * 0.03),
                 ),
               ),
-              const SizedBox(height: 8),
-              Text('$jumlah item', style: const TextStyle(fontSize: 12)),
+              SizedBox(height: width * 0.015),
+              Text('$jumlah item', style: TextStyle(fontSize: width * 0.03)),
             ],
           ),
         ],
@@ -339,46 +353,31 @@ class _PeminjamDashboardPageState extends State<PeminjamDashboardPage> {
   }
 
   BoxDecoration _cardDecoration() => BoxDecoration(
-    color: Colors.white,
-    borderRadius: BorderRadius.circular(20),
-    border: Border.all(color: primaryOrange, width: 1.8),
-    boxShadow: [
-      BoxShadow(
-        color: primaryOrange.withOpacity(0.07),
-        blurRadius: 12,
-        offset: const Offset(0, 4),
-      ),
-    ],
-  );
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: primaryOrange, width: 1.8),
+        boxShadow: [
+          BoxShadow(
+            color: primaryOrange.withOpacity(0.07),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      );
 
-  Widget _iconBox(IconData icon, {Color color = primaryOrange, Color? bg}) {
+  Widget _iconBox(IconData icon, {Color color = primaryOrange, Color? bg, required double size}) {
     return Container(
-      padding: const EdgeInsets.all(10),
+      padding: EdgeInsets.all(size * 0.35),
       decoration: BoxDecoration(
         color: bg ?? primaryOrange.withOpacity(0.12),
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Icon(icon, size: 32, color: color),
+      child: Icon(icon, size: size, color: color),
     );
   }
 
-  TextStyle _titleStyle() =>
-      const TextStyle(fontSize: 17, fontWeight: FontWeight.w600);
-
-  TextStyle _titleSmall() =>
-      const TextStyle(fontSize: 13, fontWeight: FontWeight.w500);
-
-  TextStyle _valueStyle() => const TextStyle(
-    fontSize: 52,
-    fontWeight: FontWeight.bold,
-    color: primaryOrange,
-  );
-
-  TextStyle _valueSmall() => const TextStyle(
-    fontSize: 42,
-    fontWeight: FontWeight.bold,
-    color: primaryOrange,
-  );
+  TextStyle _titleSmall(double width) =>
+      TextStyle(fontSize: width * 0.027, fontWeight: FontWeight.w500);
 
   TextStyle _subtitleStyle() =>
       const TextStyle(fontSize: 13, color: Colors.black54);

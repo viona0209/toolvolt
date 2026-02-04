@@ -164,7 +164,32 @@ class _TambahPeminjamanDialogState extends State<TambahPeminjamanDialog> {
 
       showTopSnackBar(
         Overlay.of(context),
-        CustomSnackBar.success(message: 'Peminjaman berhasil ditambahkan'),
+        Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            margin: EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.orange,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.check_circle, color: Colors.white),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Peminjaman berhasil ditambahkan',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       );
 
       Future.delayed(const Duration(seconds: 2), () {
@@ -326,7 +351,7 @@ class _TambahPeminjamanDialogState extends State<TambahPeminjamanDialog> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Text('Simpan Peminjaman'),
+                child: const Text('Simpan'),
               ),
             ],
           ),

@@ -6,6 +6,9 @@ import 'peminjam_dashboard_page.dart';
 import 'peminjam_list_alat_page.dart';
 import 'peminjam_pengembalian_page.dart';
 
+// top snackbar
+import 'package:top_snackbar_flutter/top_snack_bar.dart';
+
 final supabase = Supabase.instance.client;
 
 class PeminjamPeminjamanPage extends StatefulWidget {
@@ -66,6 +69,41 @@ class _PeminjamPeminjamanPageState extends State<PeminjamPeminjamanPage> {
     } catch (e) {
       debugPrint("ERR load peminjaman: $e");
     }
+  }
+
+  void _showTopSnackBar(String message, {bool isError = false}) {
+    showTopSnackBar(
+      Overlay.of(context),
+      Material(
+        color: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          margin: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: isError ? Colors.red : Colors.orange,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                isError ? Icons.error : Icons.check_circle,
+                color: Colors.white,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  message,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -279,7 +317,6 @@ class _PeminjamPeminjamanPageState extends State<PeminjamPeminjamanPage> {
                       ),
                     ),
                     const SizedBox(height: 20),
-
                     Text("tgl. pinjam"),
                     const SizedBox(height: 6),
                     InkWell(
@@ -316,17 +353,18 @@ class _PeminjamPeminjamanPageState extends State<PeminjamPeminjamanPage> {
                       ),
                     ),
                     const SizedBox(height: 14),
-
                     Text("tgl. kembali"),
                     const SizedBox(height: 6),
                     InkWell(
                       onTap: () async {
                         final picked = await showDatePicker(
                           context: context,
-                          initialDate: tglKembali ?? DateTime.now(),
-                          firstDate: DateTime(2023),
+                          initialDate:
+                              tglKembali ?? (tglPinjam ?? DateTime.now()),
+                          firstDate: tglPinjam ?? DateTime(2023),
                           lastDate: DateTime(2100),
                         );
+
                         if (picked != null) {
                           setStateDialog(() => tglKembali = picked);
                         }
@@ -352,8 +390,8 @@ class _PeminjamPeminjamanPageState extends State<PeminjamPeminjamanPage> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 14),
 
+                    const SizedBox(height: 14),
                     Text("Pilih alat"),
                     const SizedBox(height: 6),
                     Container(
@@ -388,7 +426,6 @@ class _PeminjamPeminjamanPageState extends State<PeminjamPeminjamanPage> {
                       ),
                     ),
                     const SizedBox(height: 22),
-
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -398,11 +435,9 @@ class _PeminjamPeminjamanPageState extends State<PeminjamPeminjamanPage> {
                               if (tglPinjam == null ||
                                   tglKembali == null ||
                                   selectedAlat == "Pilih alat") {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text("Lengkapi semua data"),
-                                    backgroundColor: Colors.red,
-                                  ),
+                                _showTopSnackBar(
+                                  "Lengkapi semua data",
+                                  isError: true,
                                 );
                                 return;
                               }
@@ -500,21 +535,11 @@ class _PeminjamPeminjamanPageState extends State<PeminjamPeminjamanPage> {
       _loadPeminjaman();
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Pengajuan berhasil"),
-          backgroundColor: Colors.green,
-        ),
-      );
+      _showTopSnackBar("Pengajuan berhasil");
     } catch (e) {
       debugPrint("ERR ajukan peminjaman: $e");
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Gagal mengajukan: $e"),
-          backgroundColor: Colors.red,
-        ),
-      );
+      _showTopSnackBar("Gagal mengajukan: $e", isError: true);
     }
   }
 }

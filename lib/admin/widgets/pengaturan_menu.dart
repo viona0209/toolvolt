@@ -14,11 +14,17 @@ class PengaturanMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    double iconSize = screenWidth < 500 ? 26 : 40;
+    double fontSize = screenWidth < 500 ? 16 : 20;
+    double arrowSize = screenWidth < 500 ? 16 : 20;
+    double paddingV = screenWidth < 500 ? 10 : 14;
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(8),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: paddingV),
         decoration: const BoxDecoration(
           border: Border(
             bottom: BorderSide(color: Color(0xFFE0E0E0), width: 1),
@@ -26,21 +32,26 @@ class PengaturanMenu extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Icon(icon, color: Colors.black54, size: 40),
+            Icon(icon, color: Colors.black54, size: iconSize),
+
             const SizedBox(width: 14),
+
             Expanded(
               child: Text(
                 title,
-                style: const TextStyle(
-                  fontSize: 20,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: fontSize,
                   fontWeight: FontWeight.w800,
                   color: Colors.black87,
                 ),
               ),
             ),
-            const Icon(
+
+            Icon(
               Icons.arrow_forward_ios,
-              size: 20,
+              size: arrowSize,
               color: Colors.black54,
             ),
           ],

@@ -6,7 +6,7 @@ class PengembalianCard extends StatefulWidget {
   final String id;
   final String nama;
   final String tanggalPinjam;
-  final int idPengguna; // ← ID user yang melakukan pengembalian
+  final int idPengguna;
   final VoidCallback? onUpdated;
 
   const PengembalianCard({
@@ -51,7 +51,8 @@ class _PengembalianCardState extends State<PengembalianCard> {
             onSurface: Colors.black87,
           ),
           textButtonTheme: TextButtonThemeData(
-              style: TextButton.styleFrom(foregroundColor: primaryOrange)),
+            style: TextButton.styleFrom(foregroundColor: primaryOrange),
+          ),
         ),
         child: child!,
       ),
@@ -67,7 +68,10 @@ class _PengembalianCardState extends State<PengembalianCard> {
         Text(
           text,
           style: const TextStyle(
-              fontSize: 14, fontWeight: FontWeight.w500, color: Colors.black87),
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.black87,
+          ),
         ),
         Container(
           height: 1.5,
@@ -82,149 +86,179 @@ class _PengembalianCardState extends State<PengembalianCard> {
   Future<void> _showReturnDialog() async {
     await showDialog(
       context: context,
-      builder: (context) => StatefulBuilder(builder: (context, setDialogState) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
-              side: BorderSide(color: primaryOrange, width: 1.5)),
-          titlePadding: const EdgeInsets.only(top: 20),
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          actionsPadding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
-          title: const Center(
-              child: Text('Proses pengembalian',
-                  style: TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87))),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildUnderlinedLabel('Nama'),
-              const SizedBox(height: 4),
-              Container(
-                width: double.infinity,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 13),
-                decoration: BoxDecoration(
-                  border: Border.all(color: primaryOrange, width: 1.2),
-                  borderRadius: BorderRadius.circular(8),
+              side: BorderSide(color: primaryOrange, width: 1.5),
+            ),
+            titlePadding: const EdgeInsets.only(top: 20),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: 12,
+            ),
+            actionsPadding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+            title: const Center(
+              child: Text(
+                'Proses pengembalian',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
                 ),
-                child: Text(widget.nama, style: const TextStyle(fontSize: 15)),
               ),
-              const SizedBox(height: 16),
-              _buildUnderlinedLabel('Kondisi'),
-              const SizedBox(height: 4),
-              DropdownButtonFormField<String>(
-                value: _selectedCondition,
-                isExpanded: true,
-                items: _conditions
-                    .map((cond) => DropdownMenuItem(value: cond, child: Text(cond)))
-                    .toList(),
-                onChanged: (val) => setDialogState(() => _selectedCondition = val),
-              ),
-              const SizedBox(height: 16),
-              _buildUnderlinedLabel('Tgl. dikembalikan'),
-              const SizedBox(height: 4),
-              InkWell(
-                onTap: () =>
-                    _selectDate(context).then((_) => setDialogState(() {})),
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 13),
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildUnderlinedLabel('Nama'),
+                const SizedBox(height: 4),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 13,
+                  ),
                   decoration: BoxDecoration(
                     border: Border.all(color: primaryOrange, width: 1.2),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        _selectedReturnDate == null
-                            ? 'Pilih tanggal'
-                            : DateFormat('dd/MM/yyyy').format(_selectedReturnDate!),
-                        style: TextStyle(
+                  child: Text(
+                    widget.nama,
+                    style: const TextStyle(fontSize: 15),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                _buildUnderlinedLabel('Kondisi'),
+                const SizedBox(height: 4),
+                DropdownButtonFormField<String>(
+                  value: _selectedCondition,
+                  isExpanded: true,
+                  items: _conditions
+                      .map(
+                        (cond) =>
+                            DropdownMenuItem(value: cond, child: Text(cond)),
+                      )
+                      .toList(),
+                  onChanged: (val) =>
+                      setDialogState(() => _selectedCondition = val),
+                ),
+                const SizedBox(height: 16),
+                _buildUnderlinedLabel('Tgl. dikembalikan'),
+                const SizedBox(height: 4),
+                InkWell(
+                  onTap: () =>
+                      _selectDate(context).then((_) => setDialogState(() {})),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 13,
+                    ),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: primaryOrange, width: 1.2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          _selectedReturnDate == null
+                              ? 'Pilih tanggal'
+                              : DateFormat(
+                                  'dd/MM/yyyy',
+                                ).format(_selectedReturnDate!),
+                          style: TextStyle(
                             fontSize: 15,
                             color: _selectedReturnDate == null
                                 ? Colors.grey[700]
-                                : Colors.black87),
-                      ),
-                      const Icon(Icons.calendar_today, size: 18, color: Colors.grey),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                      onPressed: () => Navigator.pop(context),
-                      style: OutlinedButton.styleFrom(
-                          side: BorderSide(color: primaryOrange, width: 1.5),
-                          foregroundColor: primaryOrange,
-                          padding: const EdgeInsets.symmetric(vertical: 13),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8))),
-                      child: const Text('Batal')),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      if (_selectedReturnDate == null || _selectedCondition == null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                                'Pilih tanggal dan kondisi alat terlebih dahulu'),
-                            backgroundColor: Colors.red,
+                                : Colors.black87,
                           ),
-                        );
-                        return;
-                      }
-
-                      final success = await _service.prosesPengembalian(
-  idPeminjaman: int.parse(widget.id),
-  kondisi: _selectedCondition!,
-  tanggalPengembalian: _selectedReturnDate!,
-  aktivitas: 'Melakukan pengembalian alat oleh ${widget.nama}',
-  idPengguna: widget.idPengguna,
-);
-
-                      if (success) {
-                        Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text('Pengembalian berhasil diproses'),
-                              backgroundColor: Colors.green),
-                        );
-                        // Refresh parent list
-                        if (widget.onUpdated != null) widget.onUpdated!();
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text('Gagal memproses pengembalian'),
-                              backgroundColor: Colors.red),
-                        );
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: primaryOrange,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 13),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8)),
-                      elevation: 0,
+                        ),
+                        const Icon(
+                          Icons.calendar_today,
+                          size: 18,
+                          color: Colors.grey,
+                        ),
+                      ],
                     ),
-                    child: const Text('Proses',
-                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
                   ),
                 ),
               ],
-            )
-          ],
-        );
-      }),
+            ),
+            actions: [
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: primaryOrange, width: 1.5),
+                        foregroundColor: primaryOrange,
+                        padding: const EdgeInsets.symmetric(vertical: 13),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text('Batal'),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        if (_selectedReturnDate == null ||
+                            _selectedCondition == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Pilih tanggal dan kondisi alat terlebih dahulu',
+                              ),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                          return;
+                        }
+
+                        final success = await _service.prosesPengembalian(
+                          idPeminjaman: int.parse(widget.id),
+                          kondisi: _selectedCondition!,
+                          tanggalPengembalian: _selectedReturnDate!,
+                          aktivitas:
+                              'Melakukan pengembalian alat oleh ${widget.nama}',
+                          idPengguna: widget.idPengguna,
+                        );
+
+                        if (success) {
+                          Navigator.pop(context);
+                          if (widget.onUpdated != null) widget.onUpdated!();
+                        } else {
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: primaryOrange,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 13),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: const Text(
+                        'Proses',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 
@@ -240,9 +274,10 @@ class _PengembalianCardState extends State<PengembalianCard> {
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-                color: Colors.black.withOpacity(0.06),
-                blurRadius: 10,
-                offset: const Offset(0, 3)),
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
           ],
         ),
         child: Column(
@@ -251,20 +286,30 @@ class _PengembalianCardState extends State<PengembalianCard> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('ID : ${widget.id}',
-                    style: const TextStyle(
-                        fontSize: 14, fontWeight: FontWeight.w600)),
+                Text(
+                  'ID : ${widget.id}',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 5,
+                  ),
                   decoration: BoxDecoration(
                     color: primaryOrange,
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: const Text('Kembalikan',
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500)),
+                  child: const Text(
+                    'Kembalikan',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -273,18 +318,25 @@ class _PengembalianCardState extends State<PengembalianCard> {
               children: [
                 const Icon(Icons.person_outline, size: 16, color: Colors.grey),
                 const SizedBox(width: 6),
-                Text(widget.nama,
-                    style: const TextStyle(fontSize: 14, color: Colors.black87)),
+                Text(
+                  widget.nama,
+                  style: const TextStyle(fontSize: 14, color: Colors.black87),
+                ),
               ],
             ),
             const SizedBox(height: 8),
             Row(
               children: [
-                const Icon(Icons.calendar_today_outlined,
-                    size: 16, color: Colors.grey),
+                const Icon(
+                  Icons.calendar_today_outlined,
+                  size: 16,
+                  color: Colors.grey,
+                ),
                 const SizedBox(width: 6),
-                Text('Pinjam : ${widget.tanggalPinjam}',
-                    style: const TextStyle(fontSize: 14, color: Colors.black87)),
+                Text(
+                  'Pinjam : ${widget.tanggalPinjam}',
+                  style: const TextStyle(fontSize: 14, color: Colors.black87),
+                ),
               ],
             ),
           ],

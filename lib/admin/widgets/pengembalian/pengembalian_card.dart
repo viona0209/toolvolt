@@ -370,8 +370,34 @@ class _PengembalianCardState extends State<PengembalianCard> {
                       if (mounted) {
                         showTopSnackBar(
                           Overlay.of(context),
-                          const CustomSnackBar.success(
-                            message: "Pengembalian berhasil diperbarui!",
+                          Material(
+                            color: Colors.transparent,
+                            child: Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
+                              margin: EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Colors.orange,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.check_circle, color: Colors.white),
+                                  SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      'Pengembalian berhasil diperbarui',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                         );
                       }

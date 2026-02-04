@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:toolvolt/petugas/service/supabase_peminjaman_service.dart'
-    show PeminjamanService;
+import 'package:toolvolt/petugas/service/supabase_peminjaman_service.dart' show PeminjamanService;
 import '../widgets/history_card.dart';
 import '../widgets/persetujuan_card.dart';
 import '../widgets/petugas_bottom_nav.dart';
 import 'petugas_dashboard.dart';
 import 'petugas_laporan_page.dart';
 import 'petugas_pengembalian_page.dart';
+import 'package:top_snackbar_flutter/top_snack_bar.dart';
 
 class PetugasPeminjamanPage extends StatefulWidget {
   const PetugasPeminjamanPage({super.key});
@@ -31,9 +31,8 @@ class _PetugasPeminjamanPageState extends State<PetugasPeminjamanPage> {
   Future<void> _loadPeminjaman() async {
     final data = await _service.getAllPeminjaman();
     data.sort(
-      (a, b) => int.parse(
-        a['id_peminjaman'].toString(),
-      ).compareTo(int.parse(b['id_peminjaman'].toString())),
+      (a, b) => int.parse(a['id_peminjaman'].toString())
+          .compareTo(int.parse(b['id_peminjaman'].toString())),
     );
 
     setState(() {
@@ -56,13 +55,43 @@ class _PetugasPeminjamanPageState extends State<PetugasPeminjamanPage> {
         });
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Gagal mengupdate status: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      _showTopSnackBar('Gagal mengupdate status: $e', isError: true);
     }
+  }
+
+  void _showTopSnackBar(String message, {bool isError = false}) {
+    showTopSnackBar(
+      Overlay.of(context),
+      Material(
+        color: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          margin: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: isError ? Colors.red : Colors.orange,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                isError ? Icons.error : Icons.check_circle,
+                color: Colors.white,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  message,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -75,13 +104,10 @@ class _PetugasPeminjamanPageState extends State<PetugasPeminjamanPage> {
         ),
       );
     }
-
-    final menunggu = _allPeminjaman
-        .where((p) => p['status'] == 'Menunggu')
-        .toList();
-    final riwayat = _allPeminjaman
-        .where((p) => p['status'] != 'Menunggu')
-        .toList();
+    final menunggu =
+        _allPeminjaman.where((p) => p['status'] == 'Menunggu').toList();
+    final riwayat =
+        _allPeminjaman.where((p) => p['status'] != 'Menunggu').toList();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF6F6F6),
@@ -128,25 +154,17 @@ class _PetugasPeminjamanPageState extends State<PetugasPeminjamanPage> {
                   alat: detail['alat']['nama_alat'] ?? '-',
                   jumlah: detail['jumlah'] ?? 0,
                   onApproved: () async {
-  await _updateStatus(p['id_peminjaman'], 'dipinjam');
-  ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(
-      content: Text('Peminjaman disetujui & sedang dipinjam'),
-      backgroundColor: Colors.green,
-    ),
-  );
-},
+                    await _updateStatus(p['id_peminjaman'], 'dipinjam');
+                    _showTopSnackBar(
+                        'Peminjaman disetujui & sedang dipinjam');
+                  },
                   onRejected: () async {
                     await _updateStatus(p['id_peminjaman'], 'ditolak');
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Peminjaman ditolak'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
+                    _showTopSnackBar('Peminjaman ditolak', isError: true);
                   },
                 );
               }).toList(),
+
               const SizedBox(height: 30),
               const Text(
                 'Riwayat Peminjaman',
@@ -157,12 +175,6 @@ class _PetugasPeminjamanPageState extends State<PetugasPeminjamanPage> {
                 ),
               ),
               const SizedBox(height: 12),
-
-              if (riwayat.isEmpty)
-                const Text(
-                  "Belum ada riwayat peminjaman.",
-                  style: TextStyle(color: Colors.grey),
-                ),
 
               ...riwayat.map((p) {
                 final List details = p['detail_peminjaman'];
@@ -196,13 +208,11 @@ class _PetugasPeminjamanPageState extends State<PetugasPeminjamanPage> {
                   statusColor: statusColor,
                 );
               }).toList(),
-
               const SizedBox(height: 80),
             ],
           ),
         ),
       ),
-
       bottomNavigationBar: PetugasBottomNav(
         currentIndex: _currentIndex,
         onTap: (index) {

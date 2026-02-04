@@ -3,7 +3,6 @@ import 'package:toolvolt/admin/screen/admin_dashboard.dart';
 import 'package:toolvolt/petugas/screen/petugas_dashboard.dart';
 import 'package:toolvolt/peminjam/screen/peminjam_dashboard_page.dart';
 import '../services/auth_service.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -17,6 +16,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   final _authService = AuthService();
   bool _loading = false;
+  bool _obscurePassword = true; // untuk tooglr password
 
   @override
   void dispose() {
@@ -50,7 +50,6 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _loading = true);
 
     try {
-      // Login via AuthService
       final result = await _authService.login(email: email, password: pass);
 
       if (!mounted) return;
@@ -72,13 +71,11 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
 
-      // Pastikan nama dan role tidak null
       final userName = (result['nama'] ?? '-').toString();
       final userRole = (result['role'] ?? 'peminjam').toString();
 
       _showOrangeSnackbar('Selamat datang, $userName!');
 
-      // Navigasi sesuai role
       if (userRole == 'admin') {
         Navigator.pushReplacement(
           context,
@@ -104,7 +101,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
+   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -114,10 +111,6 @@ class _LoginScreenState extends State<LoginScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 40),
-              IconButton(
-                onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.arrow_back),
-              ),
               SizedBox(height: MediaQuery.of(context).size.height * 0.05),
               const Text(
                 'Selamat Datang!',
@@ -162,7 +155,7 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 12),
               TextField(
                 controller: _passwordController,
-                obscureText: true,
+                obscureText: _obscurePassword, // tmbah ini untukj sembunyikan dan lihat password
                 decoration: InputDecoration(
                   hintText: '••••••••',
                   filled: true,
@@ -177,6 +170,19 @@ class _LoginScreenState extends State<LoginScreen> {
                       color: Color(0xFFFF7A00),
                       width: 2,
                     ),
+                  ),
+                  suffixIcon: IconButton( //icon untuk lihat pasasword
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility_off // semisal lihatpasswordmati
+                          : Icons.visibility,
+                      color: Colors.grey,
+                    ),
+                    onPressed: () { //semisal di klik maka password muncul
+                      setState(() {
+                        _obscurePassword = !_obscurePassword;
+                      });
+                    },
                   ),
                 ),
               ),

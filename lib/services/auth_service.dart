@@ -8,14 +8,12 @@ class AuthService {
     required String password,
   }) async {
     try {
-      // ============================
       // 1. Cek apakah email terdaftar
-      // ============================
       final existingUser = await supabase
           .from('pengguna')
           .select('auth_id, email')
           .eq('email', email)
-          .maybeSingle(); // <-- aman, tidak error 406
+          .maybeSingle();
 
       if (existingUser == null) {
         return {
@@ -25,9 +23,7 @@ class AuthService {
         };
       }
 
-      // ============================
       // 2. Coba login Supabase
-      // ============================
       final AuthResponse response = await supabase.auth.signInWithPassword(
         email: email,
         password: password,
@@ -41,14 +37,12 @@ class AuthService {
         };
       }
 
-      // ============================
       // 3. Ambil data lengkap pengguna
-      // ============================
       final userData = await supabase
           .from('pengguna')
           .select()
           .eq('auth_id', response.user!.id)
-          .maybeSingle(); // <-- perbaikan: aman
+          .maybeSingle();
 
       if (userData == null) {
         return {
@@ -67,9 +61,7 @@ class AuthService {
       };
     }
 
-    // ============================
     // 4. Tangani Error Supabase Auth
-    // ============================
     on AuthException catch (e) {
       final msg = e.message.toLowerCase();
 
@@ -96,9 +88,7 @@ class AuthService {
       };
     }
 
-    // ============================
     // 5. Error lain
-    // ============================
     catch (e) {
       return {
         'success': false,
@@ -125,7 +115,7 @@ class AuthService {
           .from('pengguna')
           .select()
           .eq('auth_id', user.id)
-          .maybeSingle(); // perbaikan
+          .maybeSingle();
 
       return userData;
     } catch (e) {

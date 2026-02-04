@@ -8,10 +8,9 @@ class PengembalianService {
     required String kondisi,
     required DateTime tanggalPengembalian,
     required String aktivitas,
-    required int idPengguna, // ID user yang melakukan pengembalian
+    required int idPengguna,
   }) async {
     try {
-      // Ambil info peminjaman
       final peminjaman = await supabase
           .from('peminjaman')
           .select('tanggal_pinjam')
